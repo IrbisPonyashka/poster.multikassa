@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';  // Используем Vue вместо 
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 // import mkcert from 'vite-plugin-mkcert';
 import { getBabelOutputPlugin } from "@rollup/plugin-babel";
+import path from 'path';
 
 export default defineConfig({
   define: {
@@ -37,6 +38,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, './src'),
+      'components': path.resolve(__dirname, './src/components'),  // Алиас для components
       os: "os-browserify/browser",
     }
   },
