@@ -20,6 +20,9 @@
     };
 </script>
 <style>
+    body {
+        font-family: "Montserrat", Arial, Tahoma, Verdana, sans-serif;
+    }
     .container {
         overflow: hidden;
         max-width: 1140px;

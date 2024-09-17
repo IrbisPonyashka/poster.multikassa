@@ -21,8 +21,15 @@ if( isset($_REQUEST["poster_auth_code"]))
         if($app_info["response"] && $app_info["response"]["extras"])
         {
             // Страница настроек приложения
-            if( $app_info["response"]["extras"]["multibankAccessToken"] && $app_info["response"]["extras"]["multibankRefreshToken"] )
-            {
+            if( 
+                !empty($app_info["response"]["extras"]["multibankAccessToken"]) && 
+                !empty($app_info["response"]["extras"]["multibankRefreshToken"]) && 
+                !empty($app_info["response"]["extras"]["staging"])
+            ){
+                $multibankAccessToken = $app_info["response"]["extras"]["multibankAccessToken"];
+                $multibankRefreshToken = $app_info["response"]["extras"]["multibankRefreshToken"];
+                $staging = $app_info["response"]["extras"]["staging"];
+
                 include('app.php');
             // Страница авторизации приложения 
             }else{
@@ -42,8 +49,14 @@ if( !empty($_REQUEST["auth_code"]) && !empty($_REQUEST["poster_access_token"]) )
     
     if(isset($multibank_tokens["access_token"]) && isset($multibank_tokens["access_token"]) )
     {
-        $setAppExtras = PosterMultikassaApi::posterSetAppExtras($_REQUEST["poster_access_token"], $multibank_tokens);
-        echo '<pre>'; print_r($setAppExtras); echo '</pre>';
+        $setAppExtrasJson = PosterMultikassaApi::posterSetAppExtras($_REQUEST["poster_access_token"], $multibank_tokens);
+        $setAppExtras = json_decode($setAppExtrasJson,1);
+        if(!empty($setAppExtras["response"]) && $setAppExtras["response"])
+        {
+            echo PosterMultikassaApi::callMessage("success", "Спасибо. Авторизация прошла успешно.", $setAppExtrasJson, "Вас вернёт на страницу приложения через пару секунд");
+            // header("refresh: 5; https://".$_REQUEST["portal_domain"]."/marketplace/app/".$_REQUEST["app_id"]."/?install_finished=Y");
+        }else{
+        }
     }
 }
 

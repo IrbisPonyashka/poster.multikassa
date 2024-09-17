@@ -60,7 +60,8 @@ class PosterMultikassaApi {
             "entity_type" => "settings",
             "extras" => [
                 "multibankAccessToken"  =>  $data["access_token"],
-                "multibankRefreshToken" =>  $data["refresh_token"]
+                "multibankRefreshToken" =>  $data["refresh_token"],
+                "staging" =>  $_REQUEST["staging"]
             ]
         );
 
@@ -71,28 +72,43 @@ class PosterMultikassaApi {
         return static::callCurl("POST", "https://joinposter.com/api/application.setEntityExtras?token=$tokens", json_encode($arParams), $arHeaders);
     }
     
-    
-    public static function multibankUpdateTokens($tokens, $is_staging = false )
+    public static function multibankGetCurrentProfile($tokens)
     {
         $methodType = "POST";
-        
-        if( $_REQUEST["staging"] == true ){
-            $multibank_domain = "api-staging.multibank.uz";
-            $url = "https://auth-staging.multibank.uz/oauth/token";
-        }else{
-            $multibank_domain = "api.multibank.uz";
-            $url = "https://auth.multibank.uz/oauth/token";
-        }
+    }
+    
+    protected static function multibankRefreshAuthTokens( $multibank_tokens, $poster_access_token, $is_staging = false)
+    {
+        $inputPostDataJson = file_get_contents("php://input");
+        $inputPostData = json_decode($inputPostDataJson,1);
 
-        $auth = array(
-            'grant_type' => 'auth_code_grant',
+        $arParams = array(
             'client_id' => '2',
             'client_secret' => 'wZ3rNvrzz2MnJYfI9an0W1Z7AaTgF2DwX5oP9G6z',
-            'auth_code' => $code
+            'refresh_token' => $tokens["refresh_token"]
         );
+        
+        $multibank_domain = $is_staging ? "api-staging.multibank.uz" : "api.multibank.uz";
 
-        return static::callCurl("POST", $url, $auth);
+        $authTokensJson = static::callCurl('POST',"https://".$multibank_domain."/api/profiles/v1/profile/refresh_token",$arParams,[]);
+        $authTokens = json_decode($authTokensJson,1);
+
+        if(empty($authTokens["error"])){
+            
+            $setAppExtras = static::posterSetAppExtras( $poster_access_token, $authTokens);
+            
+            // if($setAppExtras)
+
+            $authTokens["success"] = true;
+            return $authTokens;
+
+        }else{
+            
+            $authTokens["success"] = false;
+            return $authTokens;
+        }
     }
+
 
     public static function callCurl( $methodType, $url, $params = [], $headers = [] )
     {
@@ -119,5 +135,28 @@ class PosterMultikassaApi {
         curl_close($curl);
 
         return $response;
+    }
+    
+    public static function callMessage($type, $title, $body, $subtitle=null)
+    {
+        
+        return "<!-- bootstrap stylesheets -->
+            <link rel=\"stylesheet\" href=\"https://bootstrap-4.ru/docs/5.3/scss/helpers/_color-bg.scss\">
+            <link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css\">
+            <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH\" crossorigin=\"anonymous\">
+            <!-- bootstrap stylesheets / -->
+            <body style=\"background: rgba(76, 78, 100, 0.5) !important;\">
+                <div class=\"bitrix-app tab_container container-lg h-100 pt-3 pb-3\">
+                    <div class=\"row justify-content-center align-items-center h-100\">
+                        <div class=\"alert alert-$type mt-3 mb-3\" role=\"alert\" style=\"max-width: 720px;\">
+                            <h4 class=\"alert-heading\">$title</h4>
+                            <p>$subtitle</p>
+                            <hr>
+                            <p class=\"mb-0\">$body</p>
+                        </div>
+                    </div>
+                </div>
+            </body>";
+
     }
 }

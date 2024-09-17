@@ -15,6 +15,7 @@
         <!-- bootstrap stylesheets / -->
     </head>
     <body style="height: 100%;">
+        <? echo '<pre>'; print_r([$multibankAccessToken,$multibankRefreshToken, $staging]); echo '</pre>'; ?>
         <div id="app"></div>
         <script src="app/bundle.js<?="?ver=".$random?>"></script>
     </body>
