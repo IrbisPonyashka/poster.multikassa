@@ -71,6 +71,28 @@ class PosterMultikassaApi {
         return static::callCurl("POST", "https://joinposter.com/api/application.setEntityExtras?token=$tokens", json_encode($arParams), $arHeaders);
     }
     
+    
+    public static function multibankUpdateTokens($tokens, $is_staging = false )
+    {
+        $methodType = "POST";
+        
+        if( $_REQUEST["staging"] == true ){
+            $multibank_domain = "api-staging.multibank.uz";
+            $url = "https://auth-staging.multibank.uz/oauth/token";
+        }else{
+            $multibank_domain = "api.multibank.uz";
+            $url = "https://auth.multibank.uz/oauth/token";
+        }
+
+        $auth = array(
+            'grant_type' => 'auth_code_grant',
+            'client_id' => '2',
+            'client_secret' => 'wZ3rNvrzz2MnJYfI9an0W1Z7AaTgF2DwX5oP9G6z',
+            'auth_code' => $code
+        );
+
+        return static::callCurl("POST", $url, $auth);
+    }
 
     public static function callCurl( $methodType, $url, $params = [], $headers = [] )
     {
