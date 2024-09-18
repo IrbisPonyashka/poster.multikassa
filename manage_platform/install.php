@@ -37,9 +37,10 @@
                 $back_url = 'https://micros.uz/it/solutions_our/poster.multikassa/manage_platform/index.php';
                 $multibank_dev_domain = "id-staging.multibank.uz";
                 $multibank_prod_domain = "id.multibank.uz";
-            
+
                 $query = http_build_query([
                     'app_id' => $app_id,
+                    'app_domain' => $app_info["response"]["COMPANY_ID"],
                     'poster_access_token' => $poster_tokens["access_token"]
                 ]);
 

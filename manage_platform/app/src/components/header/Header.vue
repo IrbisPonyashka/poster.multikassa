@@ -72,7 +72,7 @@
                 sidebar: false,
                 menuItems: [
                     { title: 'Общие данные', path: '/', icon: 'home' },
-                    { title: 'Номенклатуры', path: '/products', icon: 'face' },
+                    { title: 'Номенклатура', path: '/products', icon: 'face' },
                 ]
             }
         },
@@ -81,7 +81,7 @@
 <style>
     .header a.v-btn.v-btn--active{
         font-weight: bold;
-    border-bottom: 1px solid #00000029;
+        border-bottom: 1px solid #00000099;
     }
     .v-toolbar__content {
         overflow: hidden;

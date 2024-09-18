@@ -15,8 +15,10 @@ if( isset($_REQUEST["poster_auth_code"]))
     // Успешная oauth авторизация
     if($poster_tokens["access_token"])
     {
-        $app_info = PosterMultikassaApi::posterGetAppInfo($poster_tokens["access_token"]);
+        $app_info = PosterMultikassaApi::posterGetAppInfo( $poster_tokens["access_token"] );
         $app_info = json_decode($app_info,1);
+
+        PosterMultikassaApi::posterSetAppExtras( $poster_tokens["access_token"], [] );
         
         if($app_info["response"] && $app_info["response"]["extras"])
         {
@@ -29,6 +31,19 @@ if( isset($_REQUEST["poster_auth_code"]))
                 $multibankAccessToken = $app_info["response"]["extras"]["multibankAccessToken"];
                 $multibankRefreshToken = $app_info["response"]["extras"]["multibankRefreshToken"];
                 $staging = $app_info["response"]["extras"]["staging"];
+                
+                $arData = array(
+                    "access_token" => $multibankAccessToken,
+                    "refresh_token" => $multibankRefreshToken
+                );
+
+                // $multibankProfile = PosterMultikassaApi::multibankGetCurrentProfile( $arData, $poster_tokens["access_token"], $staging );
+                // $multibankProfile = json_decode($multibankProfile,1);
+
+                // if(!$multibankProfile["error"]){
+                // }else{
+                //     echo $multibankProfile["message"];
+                // }
 
                 include('app.php');
             // Страница авторизации приложения 
@@ -54,8 +69,11 @@ if( !empty($_REQUEST["auth_code"]) && !empty($_REQUEST["poster_access_token"]) )
         if(!empty($setAppExtras["response"]) && $setAppExtras["response"])
         {
             echo PosterMultikassaApi::callMessage("success", "Спасибо. Авторизация прошла успешно.", $setAppExtrasJson, "Вас вернёт на страницу приложения через пару секунд");
-            // header("refresh: 5; https://".$_REQUEST["portal_domain"]."/marketplace/app/".$_REQUEST["app_id"]."/?install_finished=Y");
+            header("refresh: 3; https://".$_REQUEST["app_domain"].".joinposter.com/manage/applications/multikassa-poster");
+            
         }else{
+            echo PosterMultikassaApi::callMessage("danger", "Что-то пошло не так, попробуйте позже", $setAppExtrasJson, "Вас вернёт на страницу приложения через пару секунд");
+            header("refresh: 3; https://".$_REQUEST["app_domain"].".joinposter.com/manage/applications/multikassa-poster");
         }
     }
 }

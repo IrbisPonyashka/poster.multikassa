@@ -59,11 +59,24 @@ class PosterMultikassaApi {
         $arParams = array(
             "entity_type" => "settings",
             "extras" => [
-                "multibankAccessToken"  =>  $data["access_token"],
-                "multibankRefreshToken" =>  $data["refresh_token"],
-                "staging" =>  $_REQUEST["staging"]
+                "posterToken"  =>  $tokens
             ]
         );
+        
+        if($data && is_array($data))
+        {    
+            if(!empty( $_REQUEST["staging"]) ){
+                $staging = $_REQUEST["staging"];
+            }else if( !empty($data["staging"]) ){
+                $staging = $data["staging"];
+            }
+
+            !empty($data["access_token"]) ? $arParams["extras"]["multibankAccessToken"] = $data["access_token"] : null;
+
+            !empty($data["refresh_token"]) ? $arParams["extras"]["multibankRefreshToken"] = $data["refresh_token"] : null;
+
+            !empty($staging) ? $arParams["extras"]["staging"] = $staging : null;
+        }
 
         $arHeaders = array(
             'Content-Type: application/json',
@@ -72,9 +85,43 @@ class PosterMultikassaApi {
         return static::callCurl("POST", "https://joinposter.com/api/application.setEntityExtras?token=$tokens", json_encode($arParams), $arHeaders);
     }
     
-    public static function multibankGetCurrentProfile($tokens)
+    public static function multibankGetCurrentProfile( $multibank_tokens, $poster_access_token, $is_staging = false, $retryCount = 3)
     {
-        $methodType = "POST";
+        if(!$multibank_tokens){
+            return json_encode(["error"=>true,"message"=>"Отсутствуют токены"]);
+        }
+
+        $arHeaders = array(
+            'Accept: application/json',
+            'Accept-Language: ru',
+            'Authorization: Bearer '.$multibank_tokens["access_token"]
+        );
+        
+        $multibank_domain = $is_staging ? "api-staging.multibank.uz" : "api.multibank.uz";
+
+        $getProfileResponseJson = static::callCurl("GET", "https://".$multibank_domain."/api/profiles/v1/profile", [], $arHeaders);
+        $getProfileResponse = json_decode($getProfileResponseJson,1);
+
+        /* Успешно */
+        if($getProfileResponse && $getProfileResponse["success"]) {
+            return $getProfileResponseJson;
+        }else{
+            /* Если токены устарели, обновляем */
+            if( !empty($getProfileResponse["code"]) && $getProfileResponse["code"] == 401) {
+
+                $tokens = static::multibankRefreshAuthTokens( $multibank_tokens, $poster_access_token, $is_staging );
+
+                if ( $tokens["success"] === true && $retryCount > 0) {
+                    return static::multibankGetCurrentProfile( $multibank_tokens, $poster_access_token, $is_staging, $retryCount - 1);
+                } else {
+                    return json_encode(['error' => $tokens["error"], 'token_error_json' => $tokens]);
+                }
+            
+            }else{
+                return json_encode(['error' => "Что-то пошло не так", "message" => $getProfileResponseJson]);
+            }
+        }
+    
     }
     
     protected static function multibankRefreshAuthTokens( $multibank_tokens, $poster_access_token, $is_staging = false)
@@ -94,7 +141,8 @@ class PosterMultikassaApi {
         $authTokens = json_decode($authTokensJson,1);
 
         if(empty($authTokens["error"])){
-            
+
+            $authTokens["staging"] = $is_staging;
             $setAppExtras = static::posterSetAppExtras( $poster_access_token, $authTokens);
             
             // if($setAppExtras)
