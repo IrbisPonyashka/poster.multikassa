@@ -1,2 +1,5 @@
 manage_platform/app/node_modules/
 manage_platform/app/bundle.js
+
+pos_platform/app/node_modules/
+pos_platform/app/bundle.js
