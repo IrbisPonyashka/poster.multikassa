@@ -91,7 +91,7 @@
     }
 
     .v-toolbar.toolbar-with-border {
-        border-bottom: 1px solid #0000007a; /* Задаём нижнюю границу */
+        border-bottom: 1px solid rgb(0 0 0 / 10%); /* Задаём нижнюю границу */
     }
 
 </style>

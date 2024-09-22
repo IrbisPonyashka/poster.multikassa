@@ -2,6 +2,7 @@
     <v-card
         max-width="1140"
         class="mx-auto bg-white"
+        style="border-radius: 2rem; overflow: hidden;"
     >
         <ag-grid-vue
             :rowData="rowData"
@@ -15,7 +16,7 @@
 
 <script>
 
-    import { ref } from 'vue';
+    import { ref, onMounted } from 'vue';
     import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
     import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
     import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
@@ -32,7 +33,33 @@
         },
 
         methods: {
-            async getPosterProducts(){
+        },
+
+        setup() {
+            // Row Data: The data to be displayed.
+            const rowData = ref([]);
+
+
+            // Column Definitions: Defines the columns to be displayed.
+            const colDefs = ref([
+                {
+                    headerName: "Наименование",
+                    field: "product_name",
+                    flex: 1, // Динамическая ширина
+                },
+                {
+                    headerName: "Код ИКПУ",
+                    field: "classifier_code",
+                    flex: 1, // Динамическая ширина
+                },
+                {
+                    headerName: "Тип упаковки",
+                    field: "package",
+                    flex: 1, // Динамическая ширина
+                },
+            ]);
+            
+            const getPosterProducts  = async () => {
                 if(!poster_settings && !poster_settings.poster_access_token){
                     return false;
                 }
@@ -54,66 +81,21 @@
                             result = JSON.parse(result);
                             console.log(result);
                             if(result.response){
-                                resolve(result.response);
+                                rowData.value = result.response.map(product => ({
+                                    product_name: product.product_name,
+                                    classifier_code: product.extras.classifier_code || '',
+                                    package: product.extras.package_name || ''
+                                }));
                             }else{
-                                reject(result);
                             }
                         })
-                        .catch((error) => {console.error(error);reject(result)});
+                        .catch((error) => {console.error(error);});
                 })
             }
-        },
-        async mounted() {
-            if(!poster_settings && !poster_settings.poster_access_token){
-                return;
-            }
-            try {
-                this.products = await this.getPosterProducts();
-            } catch (error) {
-                console.error('Ошибка при загрузке продуктов:', error);
-            }
-        },
-        setup() {
-            // Row Data: The data to be displayed.
-            const rowData = ref([
-                {
-                    product_name: "Товар 1",
-                    classifier_code: { name: "Название товара 1", code: "ИКПУ 12345" },
-                    package: { name: "Упаковка 1", code: "УП123" },
-                },
-                {
-                    product_name: "Товар 2",
-                    classifier_code: { name: "Название товара 2", code: "ИКПУ 22345" },
-                    package: { name: "Упаковка 2", code: "УП223" },
-                },
-                {
-                    product_name: "Товар 3",
-                    classifier_code: { name: "Название товара 3", code: "ИКПУ 32345" },
-                    package: { name: "Упаковка 3", code: "УП323" },
-                },
-                {
-                    product_name: "Товар 4",
-                    classifier_code: { name: "Название товара 4", code: "ИКПУ 42345" },
-                    package: { name: "Упаковка 4", code: "УП423" },
-                },
-            ]);
-
-
-            // Column Definitions: Defines the columns to be displayed.
-            const colDefs = ref([
-            {
-                headerName: "Наименование",
-                field: "product_name",
-            },
-            {
-                headerName: "Код ИКПУ",
-                field: "classifier_code.code",
-            },
-            {
-                headerName: "Тип упаковки",
-                field: "package.code"
-            },
-            ]);
+            
+            onMounted(() => {
+                getPosterProducts();
+            });
 
             return {
                 rowData,

@@ -132,7 +132,7 @@ class PosterMultikassaApi {
         $arParams = array(
             'client_id' => '2',
             'client_secret' => 'wZ3rNvrzz2MnJYfI9an0W1Z7AaTgF2DwX5oP9G6z',
-            'refresh_token' => $tokens["refresh_token"]
+            'refresh_token' => $multibank_tokens["refresh_token"]
         );
         
         $multibank_domain = $is_staging ? "api-staging.multibank.uz" : "api.multibank.uz";

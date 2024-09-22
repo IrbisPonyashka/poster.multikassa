@@ -25,6 +25,7 @@
     
     <script>
         window.poster_settings = JSON.parse(`<?=json_encode($app_poster_settings) ?>`);
+        window.multibank_profile = JSON.parse(`<?= addslashes($multibankProfile) ?>`);
     </script>
     <body style="height: 100%;">
         <div id="app"></div>

@@ -37,13 +37,9 @@ if( isset($_REQUEST["poster_auth_code"]))
                     "refresh_token" => $multibankRefreshToken
                 );
 
-                // $multibankProfile = PosterMultikassaApi::multibankGetCurrentProfile( $arData, $poster_tokens["access_token"], $staging );
-                // $multibankProfile = json_decode($multibankProfile,1);
-
-                // if(!$multibankProfile["error"]){
-                // }else{
-                //     echo $multibankProfile["message"];
-                // }
+                $multibankProfile = PosterMultikassaApi::multibankGetCurrentProfile( $arData, $poster_tokens["access_token"], $staging );
+                $multibankProfile = json_decode($multibankProfile, true); // Декодирование JSON в массив
+                $multibankProfile = json_encode($multibankProfile); 
 
                 include('app.php');
             // Страница авторизации приложения 
