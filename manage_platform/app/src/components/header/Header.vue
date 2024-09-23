@@ -72,7 +72,7 @@
                 sidebar: false,
                 menuItems: [
                     { title: 'Общие данные', path: '/', icon: 'home' },
-                    { title: 'Номенклатура', path: '/products', icon: 'face' },
+                    { title: 'Продукты и тех.карты', path: '/products', icon: 'face' },
                 ]
             }
         },

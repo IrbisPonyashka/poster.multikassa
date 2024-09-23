@@ -17,8 +17,12 @@ export default {
     },
     props: ['params'],
     beforeMount() {
-        this.packages = this.params.package || []; 
-        this.selectedPackage = this.params.value || null; 
+        console.log("beforeMount", this.params);
+        if(this.params.value && this.params.value.length){
+            console.log("this.params.value", this.params.value);
+            this.packages = this.params.data.package || []; 
+            this.selectedPackage = `${this.params.value[0].name} ${this.params.value[0].code}` ; 
+        }
     },
     methods: {
         packagesProps (pkg) {

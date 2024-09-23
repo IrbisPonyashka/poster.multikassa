@@ -21,6 +21,10 @@
     import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 
     import AgSelectorVue from '../../components/selector/AgSelector.vue';
+    
+    // import { RichSelectModule } from "ag-grid-enterprise/rich-select";
+    // ModuleRegistry.registerModules([ClientSideRowModelModule, RichSelectModule]);
+
 
     export default {
         name: 'App',
@@ -125,13 +129,18 @@
                 {
                     headerName: "Тип упаковки",
                     field: "package",
-                    cellEditor: AgSelectorVue,
+                    cellRenderer: "AgSelectorVue",
+                    cellEditor: "agRichSelectCellEditor",
                     flex: 1,
-                    editable: true,
-                    cellEditorParams: params => ({
-                        package: params.data.package || [], // Передаем массив упаковок
-                        value: params.value || '', // Текущее значение упаковки
-                    }),
+                    // editable: true,
+                    // cellEditorParams: (params) => {
+                    //     console.log("cellEditorParams",params);
+                    //     return {
+                    //         cellRenderer: "AgSelectorVue",
+                    //         package: params.data.package || [], 
+                    //         value: params.value || [] , 
+                    //     }
+                    // },
                 },
             ]);
 
