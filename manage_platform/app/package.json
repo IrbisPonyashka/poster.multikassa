@@ -10,6 +10,7 @@
   },
   "author": "",
   "dependencies": {
+    "@mdi/font": "^7.4.47",
     "ag-grid-vue3": "^32.2.0",
     "bootstrap": "^5.3.3",
     "os-browserify": "^0.3.0",

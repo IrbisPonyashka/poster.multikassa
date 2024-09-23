@@ -14,6 +14,18 @@ if($_REQUEST && !empty($_REQUEST["action"]) )
 
     switch ($_REQUEST["action"]) {
         case "get":
+        case "set":
+            if( !$input_data && empty($input_data["body"])){
+                echo json_encode(["error" => true, "message" => "POST-request error. Body is empty"]);
+            }
+            switch ($_REQUEST["type"]) {
+                case "products":
+                    break;
+                case "app":    
+                    echo PosterMultikassaApi::posterSetAppExtras($input_data["poster_token"], $input_data["body"]);
+                    break;
+                default:
+            }
         break;
         case "request":
 

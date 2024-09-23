@@ -1,5 +1,5 @@
 {
-  "name": "poster-pos-platform-boilerplate",
+  "name": "poster-pos-platform-multikassa",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -20,6 +20,7 @@
   "homepage": "https://github.com/joinposter/Poster-POS-Platform-Boilerplate#readme",
   "dependencies": {
     "@popperjs/core": "^2.11.8",
+    "antd": "^5.21.0",
     "bootstrap": "^5.3.3",
     "os-browserify": "^0.3.0",
     "poster-ui-kit": "^1.2.0",
@@ -27,6 +28,7 @@
     "prop-types": "^15.6.2",
     "react": "^16.5.2",
     "react-dom": "^16.7.0",
+    "react-router-dom": "^6.26.2",
     "receipt": "^1.4.0",
     "sass": "^1.75.0",
     "stream-browserify": "^3.0.0"

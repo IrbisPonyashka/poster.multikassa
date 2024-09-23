@@ -7,6 +7,18 @@
         <? 
             $random = rand();
         ?>
+
+        <!-- Vuetify CSS -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/vuetify/3.7.1/vuetify-labs.min.css" rel="stylesheet">
+        
+        <!-- Material Design Icons -->
+        <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+
+        <!-- ag-Grid CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css" rel="stylesheet">
+
+
         <!-- bootstrap stylesheets -->
         <link rel="stylesheet" href="https://bootstrap-4.ru/docs/5.3/scss/helpers/_color-bg.scss">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -15,6 +27,7 @@
     </head>
     <? 
         $app_poster_settings = [
+            "poster_account_domain"     =>      $app_info["response"]["COMPANY_ID"],
             "poster_account_number"     =>      $app_info["response"]["extras"]["poster_account_number"],
             "poster_access_token"       =>      $app_info["response"]["extras"]["posterToken"],
             "multibank_access_token"    =>      $app_info["response"]["extras"]["multibankAccessToken"],

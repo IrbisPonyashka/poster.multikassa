@@ -71,9 +71,9 @@ class PosterMultikassaApi {
                 $staging = $data["staging"];
             }
 
-            !empty($data["access_token"]) ? $arParams["extras"]["multibankAccessToken"] = $data["access_token"] : null;
+            isset($data["access_token"]) ? $arParams["extras"]["multibankAccessToken"] = $data["access_token"] : null;
 
-            !empty($data["refresh_token"]) ? $arParams["extras"]["multibankRefreshToken"] = $data["refresh_token"] : null;
+            isset($data["refresh_token"]) ? $arParams["extras"]["multibankRefreshToken"] = $data["refresh_token"] : null;
 
             !empty($staging) ? $arParams["extras"]["staging"] = $staging : null;
         }

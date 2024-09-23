@@ -9,11 +9,12 @@ if( isset($_REQUEST["poster_auth_code"]))
 
     require_once('../src/pm_rest.php');
     
-    $poster_tokens = PosterMultikassaApi::posterOAuthByCode($_REQUEST["poster_auth_code"]);
-    $poster_tokens = json_decode($poster_tokens,1);
+    $poster_tokens_json = PosterMultikassaApi::posterOAuthByCode($_REQUEST["poster_auth_code"]);
+    $poster_tokens = json_decode($poster_tokens_json,1);
     
+    // echo '<pre style="display:none">'; print_r($poster_tokens); echo '</pre>';
     // Успешная oauth авторизация
-    if($poster_tokens["access_token"])
+    if(!empty($poster_tokens["access_token"]) )
     {
         $app_info = PosterMultikassaApi::posterGetAppInfo( $poster_tokens["access_token"] );
         $app_info = json_decode($app_info,1);
@@ -47,6 +48,10 @@ if( isset($_REQUEST["poster_auth_code"]))
                 include('install.php');
             }
         }
+    }else{
+        
+        echo PosterMultikassaApi::callMessage("success", "Что-то пошло не так.", $poster_tokens_json, "попробуйте обновить страницу");
+        // header("refresh: 3; https://".$_REQUEST["app_domain"].".joinposter.com/manage/applications/multikassa-poster");
     }
 }
 

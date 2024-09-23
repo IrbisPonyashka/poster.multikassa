@@ -10,7 +10,7 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: './src/js/app.jsx',
+      entry: './src/app.jsx',
       formats: ['cjs'],
       name: 'bundle',
       fileName: 'bundle',
