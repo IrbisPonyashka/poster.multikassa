@@ -1377,6 +1377,26 @@ acorn-jsx@^5.0.0:
   resolved "https://registry.npmjs.org/acorn/-/acorn-6.4.2.tgz"
   integrity sha512-XtGIhXwF8YM8bJhGxG5kXgjkEuNGLTkoYqVE+KMR+aspr4KGYmKYg7yUe3KghyQ9yheNwLnjmzh/7+gfDBmHCQ==
 
+ag-charts-types@10.2.0:
+  version "10.2.0"
+  resolved "https://registry.npmjs.org/ag-charts-types/-/ag-charts-types-10.2.0.tgz"
+  integrity sha512-PUqH1QtugpYLnlbMdeSZVf5PpT1XZVsP69qN1JXhetLtQpVC28zaj7ikwu9CMA9N9b+dBboA9QcjUQUJZVUokQ==
+
+ag-grid-community@32.2.0:
+  version "32.2.0"
+  resolved "https://registry.npmjs.org/ag-grid-community/-/ag-grid-community-32.2.0.tgz"
+  integrity sha512-zr29DGo6U4JR6pSOgZrZWuN1CTWdpUCfZWWpF47us6MzdFWGN5gcdiXGw40wg9XMGacShNX1aW8o33S4yVkzMw==
+  dependencies:
+    ag-charts-types "10.2.0"
+
+ag-grid-react@^32.2.0:
+  version "32.2.0"
+  resolved "https://registry.npmjs.org/ag-grid-react/-/ag-grid-react-32.2.0.tgz"
+  integrity sha512-9jPyvcY0+7fP/XzL/oMLBve/ox1gFWtl/aQ/+fvQ5AEnDJxN8P84Kp5JapMsPLkSf9WI/5fOCoIKHSaXcU7mNQ==
+  dependencies:
+    ag-grid-community "32.2.0"
+    prop-types "^15.8.1"
+
 ajv@^6.10.2, ajv@^6.12.3, ajv@^6.9.1:
   version "6.12.6"
   resolved "https://registry.npmjs.org/ajv/-/ajv-6.12.6.tgz"
@@ -3770,7 +3790,7 @@ rc-virtual-list@^3.14.2, rc-virtual-list@^3.5.1, rc-virtual-list@^3.5.2:
     rc-resize-observer "^1.0.0"
     rc-util "^5.36.0"
 
-react-dom@*, react-dom@^16.7.0, react-dom@>=16.0.0, react-dom@>=16.11.0, react-dom@>=16.8, react-dom@>=16.9.0:
+react-dom@*, "react-dom@^16.3.0 || ^17.0.0 || ^18.0.0", react-dom@^16.7.0, react-dom@>=16.0.0, react-dom@>=16.11.0, react-dom@>=16.8, react-dom@>=16.9.0:
   version "16.14.0"
   resolved "https://registry.npmjs.org/react-dom/-/react-dom-16.14.0.tgz"
   integrity sha512-1gCeQXDLoIqMgqD3IO2Ah9bnf0w9kzhwN5q4FGnHZ67hBm9yePzB5JJAIQCc8x3pFnNlwFq4RidZggNAAkzWWw==
@@ -3810,7 +3830,7 @@ react-router@6.26.2:
   dependencies:
     "@remix-run/router" "1.19.2"
 
-react@*, react@^16.14.0, react@^16.5.2, react@>=16.0.0, react@>=16.11.0, react@>=16.8, react@>=16.9.0:
+react@*, react@^16.14.0, "react@^16.3.0 || ^17.0.0 || ^18.0.0", react@^16.5.2, react@>=16.0.0, react@>=16.11.0, react@>=16.8, react@>=16.9.0:
   version "16.14.0"
   resolved "https://registry.npmjs.org/react/-/react-16.14.0.tgz"
   integrity sha512-0X2CImDkJGApiAlcf0ODKIneSwBPhqJawOa5wCtKbu7ZECrmS26NvtSILynQ66cgkT/RJ4LidJOc3bUESwmU8g==

@@ -5,8 +5,12 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Routes, Navigate  } from 'react-router-dom';
 
+import { Layout, theme } from 'antd';
+
+const { Content } = Layout;
+
 // Импортируем ваши компоненты страниц
-import Header from './components/header/app';
+import Navbar from './components/header/app';
 import Main from './views/main/app';
 import Receipts from './views/receipts/app';
 
@@ -31,14 +35,29 @@ const App = () => {
 
 
     return (
-        <Router>
-            <Header/>
-            <Routes>
-                <Route path="/" element={<Main />} />
-                <Route path="/receipts" element={<Receipts />} />
-                <Route path="/*" element={<Navigate to="/*" />} />
-            </Routes>
-        </Router>
+        <div
+          style={{
+            background: "rgb(245 245 245)",
+            minHeight: "100%",
+            borderRadius: "8px"
+          }}
+        >
+            <Router>
+                <Navbar/>
+                <Layout style={{
+                    maxWidth: "1140px",
+                    width: "100%",
+                    margin: "0 auto",
+                    padding: "1rem",
+                }}>
+                    <Routes>
+                        <Route path="/*" element={<Main />} />
+                        <Route path="/receipts" element={<Receipts />} />
+                        <Route path="/*" element={<Navigate to="/*" />} />
+                    </Routes>
+                </Layout>
+            </Router>
+        </div>
     );
 };
 

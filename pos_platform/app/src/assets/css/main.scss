@@ -2,6 +2,7 @@
 
 body{
     padding: 0;
+    overflow: scroll;
 }
 
 html, html body {
@@ -24,31 +25,96 @@ html, html body {
         height: 100%;
         position: relative;
     }
+    #header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
 
-    input.form-control {
-        border: 1px solid #eeeeee;
-        box-shadow: none;
-        height: 40px;
-
-        &:active, &:focus {
-            border: 1px solid #4A90E2;
-            box-shadow: none;
+    #main {
+        display: flex;
+        gap: 2rem;
+        & .ant-card {
+            max-width: 600px;
+            width: 100%;
+        }
+        & .p-btn{
+            max-width: 150px;
+            min-width: 135px;
+            width: 100%;
+            
+            &.default {
+                background: #8d8d8d;
+                &:hover {
+                    background: #a3a3a3;
+                }
+            }
+            &.success {
+                background: #57A84A;
+                &:hover {
+                    background: #66CA56;
+                }
+            }
+            &.info {
+                background: #1EACDC;
+                &:hover {
+                    background: #21bdf1;
+                }
+            }
+            &.primary {
+                background: #1677ff;
+                &:hover {
+                    background: #237fff;
+                }
+            }
+            &.warning {
+                background: #f0ad4e;
+                &:hover {
+                    background: #ffba58;
+                }
+            }
+            &.danger {
+                background: #d9534f;
+                &:hover {
+                    background: #ec5e59;
+                }
+            }
+        }
+    }
+    @media screen and (max-width: 900px) {
+        #main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+            justify-content: center;
         }
     }
 
-    .footer {
-        position: absolute;
-        height: 70px;
+    // input.form-control {
+    //     border: 1px solid #eeeeee;
+    //     box-shadow: none;
+    //     height: 40px;
 
-        bottom: 0px;
-        left: 0px;
-        right: 0px;
+    //     &:active, &:focus {
+    //         border: 1px solid #4A90E2;
+    //         box-shadow: none;
+    //     }
+    // }
 
-        border-top: 1px solid #eeeeee;
+    // .footer {
+    //     position: absolute;
+    //     height: 70px;
 
-        .btn {
-            float: right;
-            margin-top: 20px;
-        }
-    }
+    //     bottom: 0px;
+    //     left: 0px;
+    //     right: 0px;
+
+    //     border-top: 1px solid #eeeeee;
+
+    //     .btn {
+    //         float: right;
+    //         margin-top: 20px;
+    //     }
+    // }
 }

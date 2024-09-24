@@ -1,9 +1,14 @@
 
 import { Link } from 'react-router-dom';
 
-import { Menu } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 
-const Header = (props) => {
+const { Header } = Layout;
+
+const Navbar = (props) => {
+    const {
+        token: { colorBgContainer, borderRadiusLG },
+    } = theme.useToken();
 
     const items = [
         { label: <Link to="/"> Главная </Link>, key: 'main' },
@@ -11,15 +16,41 @@ const Header = (props) => {
     ];
 
     return (
-        <Header
-            style={{
+        <Layout id="header">
+            <Header 
+                style={{
                 display: 'flex',
                 alignItems: 'center',
-            }}
-        >
-            <Menu  theme="dark" mode="horizontal" defaultSelectedKeys={['2']} items={items} />
-        </Header>
+                }}
+            >
+                <Menu 
+                    mode="horizontal"
+                    theme="dark"
+                    defaultSelectedKeys={['2']}
+                    items={items}
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      maxWidth: "1140px",
+                      width: "100%",
+                      margin: "0 auto",
+                    }}
+                    
+                />
+            </Header>
+        </Layout>
     );
+
+    // return (
+    //     <Header
+    //         style={{
+    //             display: 'flex',
+    //             alignItems: 'center',
+    //         }}
+    //     >
+    //         <Menu  theme="dark" mode="horizontal" items={items} />
+    //     </Header>
+    // );
 };
 
-export default Header;
+export default Navbar;
