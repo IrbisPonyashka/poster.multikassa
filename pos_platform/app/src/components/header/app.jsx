@@ -40,17 +40,6 @@ const Navbar = (props) => {
             </Header>
         </Layout>
     );
-
-    // return (
-    //     <Header
-    //         style={{
-    //             display: 'flex',
-    //             alignItems: 'center',
-    //         }}
-    //     >
-    //         <Menu  theme="dark" mode="horizontal" items={items} />
-    //     </Header>
-    // );
 };
 
 export default Navbar;

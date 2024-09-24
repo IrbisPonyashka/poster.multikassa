@@ -19,7 +19,7 @@ export default function getColumnsData() {
         { 
             field: "receipt_gnk_receiptseq",
             headerName: "Номер чека" ,
-            valueFormatter: params => String(params.value),
+            valueFormatter: params => Number(params.value),
         },
         { 
             field: "module_operation_type",
