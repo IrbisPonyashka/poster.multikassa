@@ -19,17 +19,3 @@
         },
     };
 </script>
-<style>
-    body {
-        font-family: "Montserrat", Arial, Tahoma, Verdana, sans-serif;
-    }
-    .container {
-        overflow: hidden;
-        max-width: 1140px;
-        width: 100%;
-        margin: 0 auto;
-    }
-    #app .v-application__wrap{
-        display: block;
-    }
-</style>

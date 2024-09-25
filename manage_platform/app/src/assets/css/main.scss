@@ -1,0 +1,54 @@
+
+
+body {
+    font-family: "Montserrat", Arial, Tahoma, Verdana, sans-serif;
+}
+.container {
+    overflow: hidden;
+    max-width: 1140px;
+    width: 100%;
+    margin: 0 auto;
+}
+#app{
+    & .v-application__wrap{
+        display: block;
+    }
+}
+
+.about_form {
+    & .v-field {
+        &.v-field--variant-outlined {
+            &:hover .v-field__outline,
+            & .v-field__outline{
+                --v-field-border-width: 1px;
+                --v-field-border-opacity: 0.2;
+            }
+            & input {
+                cursor: default;
+                opacity: var(--v-card-subtitle-opacity, var(--v-medium-emphasis-opacity));
+            }
+        }
+    }
+}
+
+.ag-theme-quartz {
+    & .v-field{
+        &.v-field--variant-solo-filled,
+        &.v-field--variant-solo{
+            background: none;
+            box-shadow: none;
+        }
+    }
+}
+
+// .about_form .v-text-field {
+//     color: #000000; 
+//     cursor: text; 
+// }
+.custom-text-field .v-input__control {
+    // cursor: text !important; /* Принудительно устанавливаем курсор как текстовый */
+}
+
+.custom-text-field input {
+    // color: #1976D2 !important; /* Цвет текста */
+}

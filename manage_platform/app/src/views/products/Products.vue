@@ -15,13 +15,21 @@
             @cell-editing-stopped="onCellEditingStopped"
         >
         </ag-grid-vue>
-        <v-btn
-            class="me-4 col-2"
-            elevation="3"
-            @click="dialog = true"
+        <div style=" 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;"
+            class="m-4"
         >
-            Сохранить
-        </v-btn>
+            <v-btn
+                class="me-4 col-2"
+                elevation="0"
+                color="primary"
+                variant="flat"
+            >
+                Сохранить
+            </v-btn>
+        </div>
     </div>
 </template>
 

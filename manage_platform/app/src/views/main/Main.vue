@@ -61,7 +61,9 @@
         >
             <v-btn
                 class="me-4 col-2"
-                elevation="2"
+                elevation="0"
+                color="primary"
+                variant="flat"
                 @click="dialog = true"
             >
                 Выйти
@@ -87,14 +89,18 @@
                     <!-- Кнопки, скрываем их, когда лоадер активен -->
                     <v-btn
                         v-if="!loading"
+                        elevation="0"
                         color="primary"
+                        variant="danger"
                         @click="onConfirm"
                     >
                         Да
                     </v-btn>
                     <v-btn
                         v-if="!loading"
-                        color="secondary"
+                        elevation="0"
+                        variant="flat"
+                        color="primary"
                         @click="dialog = false"
                     >
                         Нет
@@ -190,40 +196,4 @@
 </script>
 
 <style scoped>
-
-    .v-text-field--outlined fieldset {
-        border-color: currentColor !important
-    }
-    .v-text-field--outlined >>> fieldset {
-        border-color: rgba(192, 0, 250, 0.986);
-    }
-    .ag-theme-quartz .v-field.v-field--variant-solo,
-    .ag-theme-quartz .v-field.v-field--variant-solo-filled
-    {
-        background: none;
-        box-shadow: none;
-    }
-
-    #app .v-field--variant-outlined .v-field__outline__start, 
-    #app .v-field--variant-outlined .v-field__outline__notch::before, 
-    #app .v-field--variant-outlined .v-field__outline__notch::after, 
-    #app .v-field--variant-outlined .v-field__outline__end {
-        border: 0 solid currentColor;
-    }
-    .about_form .v-text-field {
-        color: #000000; 
-        cursor: text; 
-    }
-    .custom-text-field .v-input__control {
-        cursor: text !important; /* Принудительно устанавливаем курсор как текстовый */
-    }
-
-    .custom-text-field input {
-        color: #1976D2 !important; /* Цвет текста */
-        cursor: text !important; /* Принудительный курсор текста для input */
-    }
-
-    .custom-text-field .v-input__control.readonly .v-input__slot {
-        cursor: text !important; /* Принудительный курсор текста для readonly полей */
-    }
 </style>
