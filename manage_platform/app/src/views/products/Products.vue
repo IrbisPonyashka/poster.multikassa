@@ -1,18 +1,28 @@
 <template>
-    <v-card
-        max-width="1140"
-        class="mx-auto bg-white"
-        style="border-radius: 2rem; overflow: hidden;"
-    >
+    <div class="ag-theme-quartz" 
+        style="
+            max-width: 1140px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 1rem;
+            flex: 1 1 auto;
+            min-height: 0">
         <ag-grid-vue
             :rowData="rowData"
             :columnDefs="colDefs"
-            style="height: 500px"
+            domLayout="autoHeight"
             class="ag-theme-quartz"
             @cell-editing-stopped="onCellEditingStopped"
         >
         </ag-grid-vue>
-    </v-card>
+        <v-btn
+            class="me-4 col-2"
+            elevation="3"
+            @click="dialog = true"
+        >
+            Сохранить
+        </v-btn>
+    </div>
 </template>
 
 <script>
@@ -21,10 +31,6 @@
     import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 
     import AgSelectorVue from '../../components/selector/AgSelector.vue';
-    
-    // import { RichSelectModule } from "ag-grid-enterprise/rich-select";
-    // ModuleRegistry.registerModules([ClientSideRowModelModule, RichSelectModule]);
-
 
     export default {
         name: 'App',
@@ -130,17 +136,17 @@
                     headerName: "Тип упаковки",
                     field: "package",
                     cellRenderer: "AgSelectorVue",
-                    cellEditor: "agRichSelectCellEditor",
+                    cellEditor: "AgSelectorVue",
                     flex: 1,
+                    cellEditorParams: (params) => {
+                        console.log("cellEditorParams",params);
+                        return {
+                            cellRenderer: "AgSelectorVue",
+                            package: params.data.package || [], 
+                            value: params.value || [] , 
+                        }
+                    },
                     // editable: true,
-                    // cellEditorParams: (params) => {
-                    //     console.log("cellEditorParams",params);
-                    //     return {
-                    //         cellRenderer: "AgSelectorVue",
-                    //         package: params.data.package || [], 
-                    //         value: params.value || [] , 
-                    //     }
-                    // },
                 },
             ]);
 

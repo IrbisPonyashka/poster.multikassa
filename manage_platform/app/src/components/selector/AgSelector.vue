@@ -3,6 +3,8 @@
         v-model="selectedPackage"
         :items="this.packages"
         :item-props="packagesProps"
+        density="compact"
+        variant="solo"
         @change="onPackageSelected"
     ></v-select>
 </template>

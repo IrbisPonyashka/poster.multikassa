@@ -1,105 +1,108 @@
 <template>
-<div>
-    <v-card
-        border
-        flat
-        max-width="740"
-        class="mx-auto bg-white pa-6"
-        style="
-            border-radius: 1rem;
-            box-shadow: none;
-        ">
-        <v-card-title class="pb-0">Данные о контрагенте</v-card-title>
-        <v-divider></v-divider>
-        <form class="about_form pt-4 pl-4 pr-4" >
-            
-            <v-card-title class="pt-0 pb-3 pl-0 pr-0">Наименование компании</v-card-title>
-            <v-text-field 
-                variant="outlined"
-                readonly
-                disabled
-                label=""
-                :model-value="multibank_profile.data.name"
-                class="custom-text-field"
-            ></v-text-field>
+    <div>
+        <v-card
+            border
+            flat
+            max-width="740"
+            class="mx-auto bg-white pa-6"
+            style="
+                border-radius: 1rem;
+                box-shadow: none;
+            ">
+            <v-card-title class="pb-0">Данные о контрагенте</v-card-title>
+            <v-divider></v-divider>
+            <form class="about_form" >
+                
+                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Наименование компании</v-card-subtitle>
+                <v-text-field 
+                    density="compact"
+                    variant="outlined"
+                    readonly
+                    label=""
+                    class="custom-text-field"
+                    :model-value="multibank_profile.data.name"
+                ></v-text-field>
 
-            <v-card-title class="pt-0 pb-3 pl-0 pr-0">ИНН</v-card-title>
-            <v-text-field 
-                variant="outlined"
-                readonly
-                disabled
-                label=""
-                :model-value="multibank_profile.tin_or_pinfl"
-            >
-            </v-text-field>
-
-            <v-card-title class="pt-0 pb-3 pl-0 pr-0">Версия системы</v-card-title>
-            <v-text-field 
-                variant="outlined"
-                readonly
-                disabled
-                label=""
-                :model-value="multibank_profile.data.address"
-            >
-            </v-text-field>
-
-            <v-checkbox
-                @change="onChangeCheckbox"
-                v-model="is_staging" 
-                label="Режим разработчика">
-            </v-checkbox>
-
-        </form>
-    </v-card>
-    <div style=" 
-        display: flex; 
-        justify-content: center; 
-        align-items: center;"
-        class="m-4"
-    >
-        <v-btn
-            class="me-4 col-2"
-            elevation="2"
-            @click="dialog = true"
-        >
-            Выйти
-        </v-btn>
-    </div>
-
-    
-    <!-- Диалоговое окно -->
-    <v-dialog v-model="dialog" max-width="620">
-        <v-card>
-            <v-card-title>Вы уверены, что хотите выйти из профиля?</v-card-title>
-            <v-card-actions>
-                <v-spacer></v-spacer>
-
-                <!-- Лоадер, который показывается при нажатии на "Да" -->
-                <v-progress-circular
-                    v-if="loading"
-                    indeterminate
-                    color="primary"
-                ></v-progress-circular>
-
-                <!-- Кнопки, скрываем их, когда лоадер активен -->
-                <v-btn
-                    v-if="!loading"
-                    color="primary"
-                    @click="onConfirm"
+                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">ИНН</v-card-subtitle>
+                <v-text-field 
+                    density="compact"
+                    variant="outlined"
+                    readonly
+                    label=""
+                    class="custom-text-field"
+                    :model-value="multibank_profile.tin_or_pinfl"
                 >
-                    Да
-                </v-btn>
-                <v-btn
-                    v-if="!loading"
-                    color="secondary"
-                    @click="dialog = false"
+                </v-text-field>
+
+                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Версия системы</v-card-subtitle>
+                <v-text-field 
+                    density="compact"
+                    variant="outlined"
+                    readonly
+                    label=""
+                    class="custom-text-field"
+                    :model-value="multibank_profile.data.address"
                 >
-                    Нет
-                </v-btn>
-            </v-card-actions>
+                </v-text-field>
+
+                <v-checkbox
+                    @change="onChangeCheckbox"
+                    v-model="is_staging" 
+                    label="Режим разработчика">
+                </v-checkbox>
+
+            </form>
         </v-card>
-    </v-dialog>
-</div>
+        <div style=" 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;"
+            class="m-4"
+        >
+            <v-btn
+                class="me-4 col-2"
+                elevation="2"
+                @click="dialog = true"
+            >
+                Выйти
+            </v-btn>
+        </div>
+
+        
+        <!-- Диалоговое окно -->
+        <v-dialog v-model="dialog" max-width="620">
+            <v-card>
+                <v-card-title>Вы уверены, 
+                    что хотите выйти из профиля?</v-card-title>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+
+                    <!-- Лоадер, который показывается при нажатии на "Да" -->
+                    <v-progress-circular
+                        v-if="loading"
+                        indeterminate
+                        color="primary"
+                    ></v-progress-circular>
+
+                    <!-- Кнопки, скрываем их, когда лоадер активен -->
+                    <v-btn
+                        v-if="!loading"
+                        color="primary"
+                        @click="onConfirm"
+                    >
+                        Да
+                    </v-btn>
+                    <v-btn
+                        v-if="!loading"
+                        color="secondary"
+                        @click="dialog = false"
+                    >
+                        Нет
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </div>
 </template>
 
 <script>
@@ -187,20 +190,40 @@
 </script>
 
 <style scoped>
+
+    .v-text-field--outlined fieldset {
+        border-color: currentColor !important
+    }
+    .v-text-field--outlined >>> fieldset {
+        border-color: rgba(192, 0, 250, 0.986);
+    }
+    .ag-theme-quartz .v-field.v-field--variant-solo,
+    .ag-theme-quartz .v-field.v-field--variant-solo-filled
+    {
+        background: none;
+        box-shadow: none;
+    }
+
+    #app .v-field--variant-outlined .v-field__outline__start, 
+    #app .v-field--variant-outlined .v-field__outline__notch::before, 
+    #app .v-field--variant-outlined .v-field__outline__notch::after, 
+    #app .v-field--variant-outlined .v-field__outline__end {
+        border: 0 solid currentColor;
+    }
     .about_form .v-text-field {
         color: #000000; 
         cursor: text; 
     }
     .custom-text-field .v-input__control {
-    cursor: text !important; /* Принудительно устанавливаем курсор как текстовый */
+        cursor: text !important; /* Принудительно устанавливаем курсор как текстовый */
     }
 
     .custom-text-field input {
-    color: #1976D2 !important; /* Цвет текста */
-    cursor: text !important; /* Принудительный курсор текста для input */
+        color: #1976D2 !important; /* Цвет текста */
+        cursor: text !important; /* Принудительный курсор текста для input */
     }
 
     .custom-text-field .v-input__control.readonly .v-input__slot {
-    cursor: text !important; /* Принудительный курсор текста для readonly полей */
+        cursor: text !important; /* Принудительный курсор текста для readonly полей */
     }
 </style>

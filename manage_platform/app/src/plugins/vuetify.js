@@ -16,6 +16,11 @@ const vuetify = createVuetify({
             mdi,
         },
     },
+    defaults: {
+        global: {
+            size: 'small', // Установить глобальный размер компонентов
+        },
+    },
 })
 
 export default vuetify
