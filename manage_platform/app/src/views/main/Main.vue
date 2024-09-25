@@ -11,7 +11,7 @@
             ">
             <v-card-title class="pb-0">Данные о контрагенте</v-card-title>
             <v-divider></v-divider>
-            <form class="about_form" >
+            <form class="about_form" v-if="multibank_profile &&  multibank_profile.length">
                 
                 <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Наименование компании</v-card-subtitle>
                 <v-text-field 
@@ -52,6 +52,11 @@
                 </v-checkbox>
 
             </form>
+            <form class="about_form" v-else>
+                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">
+                    Сервис <a :href="is_staging ? 'https://app-staging.multibank.uz/' : 'https://app.multibank.uz/' ">Multibank</a> не отвечает. Попробуйте позже
+                </v-card-subtitle>
+            </form>
         </v-card>
         <div style=" 
             display: flex; 
@@ -90,8 +95,8 @@
                     <v-btn
                         v-if="!loading"
                         elevation="0"
-                        color="primary"
-                        variant="danger"
+                        variant="flat"
+                        color="red"
                         @click="onConfirm"
                     >
                         Да

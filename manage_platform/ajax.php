@@ -5,6 +5,8 @@
  * Обработчик выполняет некую роль proxy 
 */
 
+header('Content-Type: application/json');
+
 if($_REQUEST && !empty($_REQUEST["action"]) )
 {
     require_once('../src/pm_rest.php');
@@ -28,9 +30,7 @@ if($_REQUEST && !empty($_REQUEST["action"]) )
             }
         break;
         case "request":
-
-            echo PosterMultikassaApi::callCurl( $_REQUEST["request_type"] , $_REQUEST["request_url"] , $input_data["body"] ?? [] , $input_data["headers"] ?? [] );
-
+            echo PosterMultikassaApi::callCurl( $_REQUEST["request_type"] , $_REQUEST["request_url"] , json_encode($input_data["body"]) ?? [] , $input_data["headers"] ?? [] );
         break;
     }
 

@@ -118,7 +118,7 @@ class PosterMultikassaApi {
                 }
             
             }else{
-                return json_encode(['error' => "Что-то пошло не так", "message" => $getProfileResponseJson]);
+                return json_encode(['success' => false, 'error' => "Что-то пошло не так", "message" => $getProfileResponseJson]);
             }
         }
     

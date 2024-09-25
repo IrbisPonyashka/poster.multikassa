@@ -1,18 +1,12 @@
 <template>
-    <div class="ag-theme-quartz" 
-        style="
-            max-width: 1140px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 0 1rem;
-            flex: 1 1 auto;
-            min-height: 0">
+    <div class="ag-theme-quartz" >
         <ag-grid-vue
             :rowData="rowData"
             :columnDefs="colDefs"
             domLayout="autoHeight"
             class="ag-theme-quartz"
             @cell-editing-stopped="onCellEditingStopped"
+            rowHeight="65"
         >
         </ag-grid-vue>
         <div style=" 
@@ -26,6 +20,8 @@
                 elevation="0"
                 color="primary"
                 variant="flat"
+                :loading="is_loading"
+                @click="onSaveProductOptions"
             >
                 Сохранить
             </v-btn>
@@ -44,7 +40,8 @@
         name: 'App',
         data() {
             return {
-                products: [] // Массив для хранения данных о продуктах
+                products: [],
+                is_loading: false
             }
         },
         components: {
@@ -53,11 +50,34 @@
         },
 
         methods: {
+            async onSaveProductOptions(event) {
+                event.preventDefault();
+                
+                let result = true;
+                this.rowData.forEach(async (rowNode) => {
+                    console.log("rowNode",rowNode);
+                    
+                    if(rowNode.classifier_class_code && rowNode.selectedPackage)
+                    {
+                        let extras = {
+                            classifier_class_code:      rowNode.classifier_class_code,
+                            package_code:               rowNode.selectedPackage.code,
+                            package_name:               rowNode.selectedPackage.name,
+                        };    
+                        this.is_loading = true;
+                        result = await this.setPosterProductExtras(rowNode.product_id, extras);
+                    }
+                });
+
+                this.is_loading = false;
+                console.log(result);
+            },
+
             async onCellEditingStopped (event) {
                 const value = event.value;
                 console.log(event.colDef.field);
                 // if(typeof value === 'number'){    
-                if(event.colDef.field == "classifier_code")
+                if(event.colDef.field == "classifier_class_code")
                 {    
                     let productMxik = await this.getProductInfoByMxikCode(value);
                     
@@ -81,6 +101,7 @@
                 //     event.api.refreshCells(); // Обновляем ячейку после редактирования
                 // }
             },
+
             async getProductInfoByMxikCode (code) {
                 return new Promise((resolve, reject) => {
                     
@@ -101,6 +122,7 @@
                 
                 })
             },
+
             async getProductInfoByMxikText (text) {
                 return new Promise((resolve, reject) => {
                     
@@ -120,6 +142,39 @@
                     });
                 
                 })
+            },
+            
+            async setPosterProductExtras (product_id, extras)  {
+                return new Promise((resolve, reject) => {
+                    const myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
+
+                    const raw = JSON.stringify({
+                        "headers": ['Content-Type: application/json'],
+                        "body": {
+                            "entity_type": "product",
+                            "entity_id": product_id,
+                            "extras": extras
+                        }
+                    });
+
+                    const requestOptions = {
+                        method: "POST",
+                        headers: myHeaders,
+                        body: raw,
+                        redirect: "follow"
+                    };
+
+                    let request_url = `https://joinposter.com/api/application.setEntityExtras?token=${poster_settings.poster_access_token}`;
+
+                    fetch(`https://micros.uz/it/solutions_our/poster.multikassa/manage_platform/ajax.php?action=request&request_type=POST&request_url=${request_url}`, requestOptions)
+                        .then((response) => response.text())
+                        .then((result) => {
+                            result = JSON.parse(result);
+                            resolve(result.response);
+                        })
+                        .catch((error) => reject(error) );
+                })
             }
         },
 
@@ -129,6 +184,11 @@
 
             // Column Definitions: Defines the columns to be displayed.
             const colDefs = ref([
+                { 
+                    field: "product_id",
+                    headerName: "ID продукта" ,
+                    hide: true, 
+                },
                 {
                     headerName: "Наименование",
                     field: "product_name",
@@ -136,7 +196,7 @@
                 },
                 {
                     headerName: "Код ИКПУ",
-                    field: "classifier_code",
+                    field: "classifier_class_code",
                     flex: 1, // Динамическая ширина
                     editable: true,
                 },
@@ -146,14 +206,14 @@
                     cellRenderer: "AgSelectorVue",
                     cellEditor: "AgSelectorVue",
                     flex: 1,
-                    cellEditorParams: (params) => {
-                        console.log("cellEditorParams",params);
-                        return {
-                            cellRenderer: "AgSelectorVue",
-                            package: params.data.package || [], 
-                            value: params.value || [] , 
-                        }
-                    },
+                    // cellEditorParams: (params) => {
+                    //     console.log("cellEditorParams",params);
+                    //     return {
+                    //         cellRenderer: "AgSelectorVue",
+                    //         package: params.data.package || [], 
+                    //         value: params.value || [] , 
+                    //     }
+                    // },
                     // editable: true,
                 },
             ]);
@@ -181,9 +241,10 @@
                             console.log(result);
                             if(result.response){
                                 rowData.value = result.response.map(product => ({
+                                    product_id: product.product_id,
                                     product_name: product.product_name,
-                                    classifier_code: product.extras && product.extras.classifier_code ? product.extras.classifier_code : "",
-                                    package: product.extras && product.extras.package ? product.extras.package : [] 
+                                    classifier_class_code: product.extras && product.extras.classifier_class_code ? product.extras.classifier_class_code : "",
+                                    package: product.extras && product.extras.package_code && product.extras.package_name ? [{code: product.extras.package_code, name:product.extras.package_name}] : []  
                                 }));
                             }else{
                             }
