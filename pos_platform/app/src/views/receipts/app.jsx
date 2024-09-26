@@ -8,9 +8,10 @@ import { AgGridReact } from 'ag-grid-react'; // React Data Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css";
 
+import Receipt from "/src/components/receipt/Receipt";
 import getColumnsData from "/src/views/receipts/colData";
 
-export default function Receipts() {   
+export default function Receipts( {cashbox, contragent} ) {   
     
     useEffect( () => {
         getReceiptsRequest();
@@ -77,41 +78,6 @@ export default function Receipts() {
         setIsModalVisible(false);
     };
 
-    const returnReceiptDetail = (receipt) => {
-        console.log("receipt",receipt);
-
-        return (
-            <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>
-                <h3>{operationTypeMapping[receipt.module_operation_type]}</h3>
-                {/* <p>{receipt.receipt_cashier_name}</p> */}
-                <p>Дата и время: {receipt.receipt_gnk_time}</p>
-                {/* <p>ИНН: {receipt.inn}</p> */}
-                <p>Кассир: {receipt.receipt_cashier_name}</p>
-                <hr />
-
-                <p><strong>#cola</strong></p>
-                <p>Количество: 2</p>
-                <p>Цена: 123123123</p>
-                <p>НДС: 12</p>
-                <hr />
-
-                <p>Итого к оплате: {receipt.total_all_sum}</p>
-                <p>Оплачено {receipt.receipt_sum}</p>
-                <p>Наличные {receipt.receipt_gnk_receivedcash}</p>
-                <p>Терминал {receipt.receipt_gnk_receivedcard}</p>
-                <p>Сдача {receipt.total_refund_cash}</p>
-                <p>Итого сумма НДС {receipt.total_sale_vat}</p>
-                <p>Сумма скидки {receipt.total_refund_cash}</p>
-                <hr />
-
-                <p>ФМ № {receipt.module_gnk_id}</p>
-                <p>Чек № {receipt.receipt_gnk_receiptseq}</p>
-                <p>S/N {receipt.module_name}</p>
-
-            </div>
-        );
-    };
-
     console.log("receipts", rowData);
     return (
         <Content id="receipts" >
@@ -135,7 +101,12 @@ export default function Receipts() {
                 footer={null}
                 width={400}
             >
-                {selectedRow && returnReceiptDetail(selectedRow)}
+                <Receipt 
+                    receipt={selectedRow}
+                    cashbox={cashbox} 
+                    contragent={contragent}
+                >
+                </Receipt>
             </Modal>
         </Content>
     );  

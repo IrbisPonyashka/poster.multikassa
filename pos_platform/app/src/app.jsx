@@ -5,7 +5,9 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Routes, Navigate  } from 'react-router-dom';
 
-import { Layout, theme } from 'antd';
+import { Layout, Card } from 'antd';
+
+import PosterUiKit from 'poster-ui-kit';
 
 const { Content } = Layout;
 
@@ -16,6 +18,7 @@ import Receipts from './views/receipts/app';
 
 const App = () => {
 
+    const [fiscal_module, setFiscalModule] = useState({});
     const [cashbox, setCahbox] = useState([]);
     const [contragent, setContragent] = useState([]);
     
@@ -30,6 +33,7 @@ const App = () => {
             Poster.interface.popup({ width: window.outerWidth - (window.outerWidth * 0.1), height: window.outerHeight - (window.outerHeight * 0.2), title: 'Multikassa' });
         });
 
+        getFiscalModuleInfo();
         getCahboxInfo();
         getContragentInfo();
     }, []);
@@ -170,6 +174,26 @@ const App = () => {
             .catch((error) => console.error(error));
         })
     }
+
+    const getFiscalModuleInfo = async () => {
+        return new Promise((resolve, reject) => {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+              
+            fetch("http://localhost:8080/api/v1/info", requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                result = JSON.parse(result);
+                console.log("getFiscalModuleInfo",result.data && result.data.result)
+                if(result.data && result.data.result){
+                    setFiscalModule(result.data);
+                }
+            })
+            .catch((error) => console.error(error));
+        })
+    }
     
     const showNotification = ( title, message ) => {
         Poster.interface.showNotification({
@@ -179,31 +203,60 @@ const App = () => {
         })
     }
 
-    return (
-        <div
-          style={{
-            background: "rgb(245 245 245)",
-            minHeight: "100%",
-            borderRadius: "8px"
-          }}
-        >
-            <Router>
-                <Navbar/>
+    console.log("fiscal_module", fiscal_module);
+    if(fiscal_module && fiscal_module.result ){    
+        return (
+            <div
+            style={{
+                background: "rgb(245 245 245)",
+                minHeight: "100%",
+                borderRadius: "8px"
+            }}
+            >
+                <Router>
+                    <Navbar/>
+                    <Layout style={{
+                        maxWidth: "1140px",
+                        width: "100%",
+                        margin: "0 auto",
+                        padding: "1rem",
+                    }}>
+                        <Routes>
+                            <Route path="/*" element={<Main cashbox={cashbox} contragent={contragent} />} />
+                            <Route path="/receipts" element={<Receipts cashbox={cashbox} contragent={contragent} />} />
+                            <Route path="/*" element={<Navigate to="/*"/>} />
+                        </Routes>
+                    </Layout>
+                </Router>
+            </div>
+        )
+    }else{
+        return (
+            <div
+            style={{
+                background: "rgb(245 245 245)",
+                minHeight: "100%",
+                borderRadius: "8px"
+            }}
+            >
                 <Layout style={{
                     maxWidth: "1140px",
                     width: "100%",
                     margin: "0 auto",
                     padding: "1rem",
                 }}>
-                    <Routes>
-                        <Route path="/*" element={<Main cashbox={cashbox} contragent={contragent} />} />
-                        <Route path="/receipts" element={<Receipts cashbox={cashbox} contragent={contragent} />} />
-                        <Route path="/*" element={<Navigate to="/*"/>} />
-                    </Routes>
+                    <Card
+                        title="Фискальный модуль не найден или касса не настроена"
+                        bordered={false}
+                    >
+                        {/* <PosterUiKit.FormGroup label="Фискальный модуль" vertical >
+                            <input type="text" disabled readonly value={cashbox.module_gnk_id} />
+                        </PosterUiKit.FormGroup> */}   
+                    </Card>
                 </Layout>
-            </Router>
-        </div>
-    );
+            </div>
+        )
+    }
 };
 
 ReactDOM.render(<App />, document.getElementById('app-container'));
