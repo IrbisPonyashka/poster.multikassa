@@ -21,6 +21,7 @@ const App = () => {
     const [fiscal_module, setFiscalModule] = useState({});
     const [cashbox, setCahbox] = useState([]);
     const [contragent, setContragent] = useState([]);
+    const [app_options, setAppOptions] = useState([]);
     
     useEffect( () => {  
         Poster.interface.showApplicationIconAt({
@@ -36,6 +37,7 @@ const App = () => {
         getFiscalModuleInfo();
         getCahboxInfo();
         getContragentInfo();
+        getPosterAppOptions();
     }, []);
     
     Poster.on('afterOrderClose', (order) => {
@@ -106,7 +108,6 @@ const App = () => {
                 const item = products[key];
                 const product = await getProductById(item.id);
                 let item_price = item.taxValue === 0 ? item.price : item.price + (item.price * Number(`0.${item.taxValue}`)) ;
-                console.log("item_price",item_price);
                 preparedItemsArr.push({
                     "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
                     "package_code": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
@@ -175,6 +176,17 @@ const App = () => {
         })
     }
 
+    const getPosterAppOptions = async () => {
+        Poster.makeApiRequest('settings.getAllSettings', {
+            method: 'get'
+        
+        }, (options) => {
+            if (options) {
+                setAppOptions(options);
+            }
+        });
+    }
+
     const getFiscalModuleInfo = async () => {
         return new Promise((resolve, reject) => {
             const requestOptions = {
@@ -186,7 +198,6 @@ const App = () => {
             .then((response) => response.text())
             .then((result) => {
                 result = JSON.parse(result);
-                console.log("getFiscalModuleInfo",result.data && result.data.result)
                 if(result.data && result.data.result){
                     setFiscalModule(result.data);
                 }
@@ -203,6 +214,7 @@ const App = () => {
         })
     }
 
+    console.log("app_options", app_options);
     console.log("fiscal_module", fiscal_module);
     if(fiscal_module && fiscal_module.result ){    
         return (

@@ -115,32 +115,45 @@ const App = ({ cashbox, contragent }) => {
                 id="main"
             >
                 <Card
-                    title="Касса"
-                    bordered={false}
-                >
+                    className='left_card'
+                    bordered={false}>
+                    <Card
+                        className='auth_info_card'
+                        title="Авторизационные данные"
+                        bordered={false}
+                    >
+                        <PosterUiKit.FormGroup label="Авторизированный пользователь" vertical >
+                            <input disabled readonly type="text" value=
+                                { 
+                                    cashbox.current_cashier ?  `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}` : "" 
+                                } />
+                        </PosterUiKit.FormGroup>
 
-                    <PosterUiKit.FormGroup label="Фискальный модуль" vertical >
-                        <input type="text" disabled readonly value={cashbox.module_gnk_id} />
-                    </PosterUiKit.FormGroup>
+                        <PosterUiKit.FormGroup disabled readonly label="Контрагент" vertical >
+                            <input type="text" value={contragent.name} />
+                        </PosterUiKit.FormGroup>
+                        
+                    </Card>
 
-                    <PosterUiKit.FormGroup label="Серийный номер" vertical >
-                        <input disabled readonly type="text" value={contragent.module_name} />
-                    </PosterUiKit.FormGroup>
+                    <Card
+                        className='cashbox_info_card'
+                        title="О кассе"
+                        bordered={false}
+                    >
 
-                    <PosterUiKit.FormGroup label="Кассир" vertical >
-                        <input disabled readonly type="text" value=
-                            { 
-                                cashbox.current_cashier ?  `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}` : "" 
-                            } />
-                    </PosterUiKit.FormGroup>
+                        <PosterUiKit.FormGroup label="Фискальный модуль" vertical >
+                            <input type="text" disabled readonly value={cashbox.module_gnk_id} />
+                        </PosterUiKit.FormGroup>
 
-                    <PosterUiKit.FormGroup disabled readonly label="Контрагент" vertical >
-                        <input type="text" value={contragent.name} />
-                    </PosterUiKit.FormGroup>
-                    
+                        <PosterUiKit.FormGroup label="Серийный номер" vertical >
+                            <input disabled readonly type="text" value={contragent.module_name} />
+                        </PosterUiKit.FormGroup>
+                    </Card>
+        
                 </Card>
     
                 <Card
+                    className='right_card'
                     title="Операции"
                     bordered={false}
                 >

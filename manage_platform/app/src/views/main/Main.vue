@@ -11,9 +11,9 @@
             ">
             <v-card-title class="pb-0">Данные о контрагенте</v-card-title>
             <v-divider></v-divider>
-            <form class="about_form" v-if="multibank_profile &&  multibank_profile.length">
+            <form class="about_form" v-if="multibank_profile &&  multibank_profile.data">
                 
-                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Наименование компании</v-card-subtitle>
+                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Профиль</v-card-subtitle>
                 <v-text-field 
                     density="compact"
                     variant="outlined"
@@ -34,7 +34,7 @@
                 >
                 </v-text-field>
 
-                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Версия системы</v-card-subtitle>
+                <v-card-subtitle class="pt-0 pb-1 pl-0 pr-0">Адрес</v-card-subtitle>
                 <v-text-field 
                     density="compact"
                     variant="outlined"
@@ -46,7 +46,14 @@
                 </v-text-field>
 
                 <v-checkbox
-                    @change="onChangeCheckbox"
+                    density="compact"
+                    @change="onChangeWithoutFiscalizationCheckbox"
+                    v-model="without_fiscalization" 
+                    label="Позволять операции по закрытию чека без фискализации">
+                </v-checkbox>
+                <v-checkbox
+                    density="compact"
+                    @change="onChangeStagingCheckbox"
                     v-model="is_staging" 
                     label="Режим разработчика">
                 </v-checkbox>
@@ -117,20 +124,48 @@
 </template>
 
 <script>
-    console.log(multibank_profile);
+    console.log("multibank_profile",multibank_profile);
     export default {
         name: 'App',
         data(){
             return {
                 dialog: false, // Управляет показом/скрытием диалога
                 loading: false, // Управляет показом лоадера
-                multibank_profile: multibank_profile.success ? multibank_profile.data : [],
+                multibank_profile: multibank_profile.success ? multibank_profile.data : false,
                 is_staging: /^true$/i.test(poster_settings.staging),
+                without_fiscalization: /^true$/i.test(poster_settings.without_fiscalization),
             }
         },
         methods: {
-            onChangeCheckbox (e) {
-                console.log(e);
+            onChangeWithoutFiscalizationCheckbox (e) {
+                poster_settings.without_fiscalization = this.without_fiscalization === false ? "false" : "true";
+                return new Promise((resolve, reject) => {
+                    const myHeaders = new Headers();
+
+                    let objFields = {
+                        poster_token: poster_settings.poster_access_token,
+                        body: {
+                            withoutFiscalization: poster_settings.without_fiscalization
+                        },
+                    };
+
+                    const requestOptions = {
+                        method: "POST",
+                        headers: myHeaders,
+                        redirect: "follow",
+                        body: JSON.stringify(objFields)
+                    };
+
+                    fetch(`https://micros.uz/it/solutions_our/poster.multikassa/manage_platform/ajax.php?action=set&type=app`, requestOptions)
+                        .then((response) => response.text())
+                        .then((result) => {
+                            result = JSON.parse(result);
+                            console.log(result);
+                        })
+                        .catch((error) => {console.error(error);});
+                })
+            },
+            onChangeStagingCheckbox (e) {
                 poster_settings.staging = this.is_staging === false ? "false" : "true";
                 
                 return new Promise((resolve, reject) => {

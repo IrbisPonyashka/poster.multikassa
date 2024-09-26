@@ -34,7 +34,20 @@ html, html body {
     #main {
         display: flex;
         gap: 2rem;
-        & .ant-card {
+        & .ant-card.cashbox_info_card{}
+        
+        & .ant-card.auth_info_card{
+            margin-bottom: 2rem;
+        }
+        & .ant-card.left_card{
+            background: none;
+            box-shadow: none;
+            & > .ant-card-body{
+                padding: 0;
+            }
+        }
+        & .ant-card.left_card,
+        & .ant-card.right_card {
             max-width: 600px;
             width: 100%;
         }
@@ -117,4 +130,7 @@ html, html body {
     //         margin-top: 20px;
     //     }
     // }
+}
+.ant-modal-body p {
+    margin: 0;
 }

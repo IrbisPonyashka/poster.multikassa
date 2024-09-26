@@ -32,6 +32,7 @@
             "poster_access_token"       =>      $app_info["response"]["extras"]["posterToken"],
             "multibank_access_token"    =>      $app_info["response"]["extras"]["multibankAccessToken"],
             "multibank_refresh_token"   =>      $app_info["response"]["extras"]["multibankRefreshToken"],
+            "without_fiscalization"     =>      !isset($app_info["response"]["extras"]["withoutFiscalization"]) ? "false" : $app_info["response"]["extras"]["withoutFiscalization"] ,
             "staging"                   =>      $app_info["response"]["extras"]["staging"],
         ];
     ?>

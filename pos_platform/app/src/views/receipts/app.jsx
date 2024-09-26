@@ -99,7 +99,7 @@ export default function Receipts( {cashbox, contragent} ) {
                 visible={isModalVisible}
                 onCancel={handleCancel}
                 footer={null}
-                width={400}
+                width={540}
             >
                 <Receipt 
                     receipt={selectedRow}

@@ -18,8 +18,10 @@ export default function getColumnsData() {
         },
         { 
             field: "receipt_gnk_receiptseq",
-            headerName: "Номер чека" ,
+            headerName: "№" ,
             valueFormatter: params => Number(params.value),
+            minWidth: 60,
+            maxWidth: 70,
         },
         { 
             field: "module_operation_type",
@@ -35,15 +37,35 @@ export default function getColumnsData() {
             headerName: "Время",
         },
         {
-            field: "module_operation_sum_card",
+            field: "receipt_sum",
+            headerName: "Сумма",
+            valueFormatter: params => String(params.value),
+        },
+        {
+            field: "receipt_gnk_receivedcard",
             headerName: "Оплата картой",
         },
         {
-            field: "module_operation_sum_cash",
+            field: "receipt_gnk_receivedcash",
             headerName: "Оплата наличными",
         },
+        // {
+        //     headerName: "Из которых", // общий заголовок
+        //     children: [
+        //         {
+        //             field: "receipt_gnk_receivedcash",
+        //             headerName: "Наличными",
+        //             minWidth: 100,
+        //         },
+        //         {
+        //             field: "receipt_gnk_receivedcard",
+        //             headerName: "Безналичными",
+        //             minWidth: 100,
+        //         },
+        //     ]
+        // },
         {
-            field: "module_gnk_terminalid",
+            field: "module_gnk_id",
             headerName: "S/N",
         },
     ];

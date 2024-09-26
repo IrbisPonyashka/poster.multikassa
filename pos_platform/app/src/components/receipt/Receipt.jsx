@@ -27,23 +27,196 @@ export default function Receipt(props) {
     // const [selectedRow, setSelectedRow] = useState(null);
 
     const returnReceiptBody = (type) => {
-        switch (type) {
+        
+        switch (Number(type)) {
             case 1: // Открытие смены
                 break;
             case 2: // Закрытие смены
-                break;
-            case 3: // Продажа
                 return(
-                    <div >
-                        <p><strong>#cola</strong></p>
-                        <p>Количество: 2</p>
-                        <p>Цена: 123123123</p>
-                        <p>НДС: 12</p>
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Продажа </p>
+                            <p> {receipt.sale_count} </p>
+                            <p> {(receipt.total_all_sum).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Наличные </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Безналичные </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <hr />
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Возврат </p>
+                            <p> 0 </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Наличные </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Безналичные </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <hr />
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Выручка </p>
+                            <p> 0 </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Наличные </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Безналичные </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <hr />
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> НДС </p>
+                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p> Возвращено НДС </p>
+                            <p> {(2 * 12000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
                         <hr />
                     </div>
                 )
-            default:
+            case 3: 
+                const items = JSON.parse(receipt.items);
+                return items.map((item, index) => (
+                    <div key={index} style={{ marginBottom: '10px' }}>
+                        <p style={{textAlign: 'start'}}>
+                            <strong>#{item.product_name}</strong>
+                        </p>
+
+                        {/* Количество, цена за единицу и итоговая сумма */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>{item.count} {item.product_package_name ?? ""} x { (item.product_price).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p>{(item.count * item.product_price).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }</p>
+                        </div>
+                        
+
+                        {/* НДС */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>НДС: {item.VATPercent}%</p>
+                            <p>{((item.count * item.product_price) * (item.VATPercent / 100)).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                        </div>
+
+                        {/* Штрих-код и ИКПУ */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Штрих-код</p>
+                            <p>{item.product_barcode}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>ИКПУ</p>
+                            <p>{item.classifier_class_code}</p>
+                        </div>
+
+                        <hr />
+                    </div>
+                ));
+            break;
+        }
+    }
+
+    const returnReceiptFooter = (type) => {
+        
+        switch (Number(type)) {
+            case 1: // Открытие смены
+                return (
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Итого к оплате</p>
+                            <p>{receipt.receipt_sum}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Оплачено</p>
+                            <p>{receipt.total_all_sum}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Наличные</p>
+                            <p>{receipt.receipt_gnk_receivedcash}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Терминал</p>
+                            <p>{receipt.receipt_gnk_receivedcard}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Итого сумма НДС</p>
+                            <p>{receipt.total_sale_vat}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Сумма скидки</p>
+                            <p>{receipt.total_refund_cash}</p>
+                        </div>
+                        <hr />
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>ФМ №</p>
+                            <p>{receipt.module_gnk_id}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>S/N</p>
+                            <p> {receipt.module_name}</p>
+                        </div>
+                    </div>
+                );
+            case 2: // Закрытие смены
                 break;
+            case 3: 
+                return (
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Итого к оплате</p>
+                            <p>{receipt.receipt_sum}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Оплачено</p>
+                            <p>{receipt.total_all_sum}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Наличные</p>
+                            <p>{receipt.receipt_gnk_receivedcash}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Терминал</p>
+                            <p>{receipt.receipt_gnk_receivedcard}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Сдача</p>
+                            <p>{receipt.total_refund_cash}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Итого сумма НДС</p>
+                            <p>{receipt.total_sale_vat}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Сумма скидки</p>
+                            <p>{receipt.total_refund_cash}</p>
+                        </div>
+                        <hr />
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>ФМ №</p>
+                            <p>{receipt.module_gnk_id}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>ФП</p>
+                            <p> {receipt.receipt_gnk_fiscalsign}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>S/N</p>
+                            <p> {contragent.module_name}</p>
+                        </div>
+                    </div>
+                );
         }
     }
 
@@ -55,9 +228,9 @@ export default function Receipt(props) {
         return (
             <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>
                 {/* header */}
-                <h4>{operationTypeMapping[receipt.module_operation_type]}</h4>
-                <h4>{receipt.receipt_cashier_name}</h4>
-                <h4>{contragent.tradepoint_address}</h4>
+                <h6>{operationTypeMapping[receipt.module_operation_type]}</h6>
+                <h6>{receipt.receipt_cashier_name}</h6>
+                <h6>{contragent.tradepoint_address}</h6>
                 <p>Дата и время: {receipt.receipt_gnk_time}</p>
                 <p>ИНН: {contragent.tin_or_pinfl}</p>
                 <hr />
@@ -66,19 +239,10 @@ export default function Receipt(props) {
                 {/* body */}
                 {returnReceiptBody(receipt.module_operation_type)}
                 {/* body end */}
-
-                <p>Итого к оплате: {receipt.total_all_sum}</p>
-                <p>Оплачено {receipt.receipt_sum}</p>
-                <p>Наличные {receipt.receipt_gnk_receivedcash}</p>
-                <p>Терминал {receipt.receipt_gnk_receivedcard}</p>
-                <p>Сдача {receipt.total_refund_cash}</p>
-                <p>Итого сумма НДС {receipt.total_sale_vat}</p>
-                <p>Сумма скидки {receipt.total_refund_cash}</p>
-                <hr />
-
-                <p>ФМ № {receipt.module_gnk_id}</p>
-                <p>Чек № {receipt.receipt_gnk_receiptseq}</p>
-                <p>S/N {receipt.module_name}</p>
+                
+                {/* body */}
+                {returnReceiptFooter(receipt.module_operation_type)}
+                {/* body end */}
 
             </div>
         );
@@ -86,7 +250,7 @@ export default function Receipt(props) {
 
     return (
         <div> 
-            {receipt && returnReceiptDetail} 
+            {receipt && returnReceiptDetail()} 
         </div>
     );  
 }

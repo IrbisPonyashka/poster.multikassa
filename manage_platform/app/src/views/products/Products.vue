@@ -4,9 +4,10 @@
             :rowData="rowData"
             :columnDefs="colDefs"
             domLayout="autoHeight"
-            class="ag-theme-quartz"
+            @grid-ready="onGridReady"
             @cell-editing-stopped="onCellEditingStopped"
             rowHeight="65"
+            :loading="true"
         >
         </ag-grid-vue>
         <div style=" 
@@ -26,12 +27,22 @@
                 Сохранить
             </v-btn>
         </div>
+        <!-- <div v-if="rowData && rowData.length">
+        </div> -->
+        <!-- <div style=" 
+                display: flex; 
+                justify-content: center; 
+                align-items: center;"
+            class="m-4"
+            v-else>
+            <v-progress-circular color="primary" indeterminate model-value="20" :size="55"></v-progress-circular>
+        </div> -->
     </div>
 </template>
 
 <script>
 
-    import { ref, onMounted } from 'vue';
+    import { ref, onMounted, shallowRef  } from 'vue';
     import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 
     import AgSelectorVue from '../../components/selector/AgSelector.vue';
@@ -41,7 +52,7 @@
         data() {
             return {
                 products: [],
-                is_loading: false
+                is_loading: false,
             }
         },
         components: {
@@ -180,6 +191,8 @@
 
         setup() {
             // Row Data: The data to be displayed.
+            const gridApi = shallowRef();
+
             const rowData = ref([]);
 
             // Column Definitions: Defines the columns to be displayed.
@@ -218,6 +231,12 @@
                 },
             ]);
 
+            
+            const setLoading = (value) => {
+                console.log("gridApi",gridApi)
+                gridApi.value.setGridOption("loading", value);
+            };
+
             const getPosterProducts  = async () => {
                 if(!poster_settings && !poster_settings.poster_access_token){
                     return false;
@@ -246,6 +265,7 @@
                                     classifier_class_code: product.extras && product.extras.classifier_class_code ? product.extras.classifier_class_code : "",
                                     package: product.extras && product.extras.package_code && product.extras.package_name ? [{code: product.extras.package_code, name:product.extras.package_name}] : []  
                                 }));
+                                setLoading(false);
                             }else{
                             }
                         })
@@ -253,13 +273,19 @@
                 })
             }
             
+            const onGridReady = (params) => {
+                gridApi.value = params.api;
+            };
+            
             onMounted(() => {
                 getPosterProducts();
             });
 
             return {
                 rowData,
-                colDefs
+                colDefs,
+                onGridReady,
+                gridApi,
             };
         },
     };
