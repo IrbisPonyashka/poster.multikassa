@@ -22,17 +22,19 @@ const App = () => {
     const [cashbox, setCahbox] = useState([]);
     const [contragent, setContragent] = useState([]);
     const [app_options, setAppOptions] = useState([]);
+    // const [shiftInfo, setShiftInfo] = useState({});
+    // const [isShiftOpen, setIsShiftOpen] = useState(false);
     
     useEffect( () => {  
         Poster.interface.showApplicationIconAt({
             functions: 'Multikassa',
-            // order: 'Кнопка платформы',
-            // payment: 'My Button',
         });
 
         Poster.on('applicationIconClicked', async (data) => {
             Poster.interface.popup({ width: window.outerWidth - (window.outerWidth * 0.1), height: window.outerHeight - (window.outerHeight * 0.2), title: 'Multikassa' });
         });
+
+        // getZReportInfo();
 
         getFiscalModuleInfo();
         getCahboxInfo();
@@ -40,101 +42,29 @@ const App = () => {
         getPosterAppOptions();
     }, []);
     
-    Poster.on('afterOrderClose', (order) => {
-        console.log("afterOrderClose", order);
-
-        onAfterOrderClose(order.order);
-    }); 
-
-    const onAfterOrderClose = async (order) => {
-        let sale_fields_obj = {
-            "module_operation_type": "3",
-            "receipt_sum": order.total === 0 ? order.total : order.total * 100 ,
-            "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`,
-            "receipt_gnk_receivedcash": order.payedCash === 0 ? order.payedCash : order.payedCash * 100 ,
-            "receipt_gnk_receivedcard": order.payedCard === 0 ? order.payedCard : order.payedCard * 100 ,
-            "receipt_gnk_time": new Date(order.dateClose ?? order.dateStart).toLocaleString().replace(",",""),
-            "items": [],
-            "location": {
-                "latitude": 41.29671408606234,
-                "longitude": 69.21787478269367
-            }
-        }; 
-        sale_fields_obj.items = await prepareProductItems(order.products);
-        
-        console.log("sale_fields_obj", sale_fields_obj);
-
-        if(sale_fields_obj.items){
-            let saleOperationResponse = await saleOperationRequest(sale_fields_obj);
-            if(saleOperationResponse.success){
-                showNotification( "Multikassa", "Операция прошла успешно || Operatsiya muvaffaqiyatli o'tdi");
-            }else{
-                showNotification( "Multikassa", `Что-то пошло не так || Biror narsa noto'g'ri ketdi <hr> ${saleOperationResponse.data?.error?.data}`);
-            }
-            console.log("saleOperationResponse", saleOperationResponse);
-        }
-    }; 
-    
-    const saleOperationRequest = async (feilds) => {
+    const getZReportInfo = async () => {
         return new Promise((resolve, reject) => {
-
-            const myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
-
-            const raw = JSON.stringify(feilds);
-
             const requestOptions = {
-                method: "POST",
-                headers: myHeaders,
-                body: raw,
+                method: "GET",
                 redirect: "follow"
             };
+              
+            fetch("http://localhost:8080/api/v1/zReport", requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                result = JSON.parse(result);
+                if(result.success){
+                    setShiftInfo(result.data);
 
-            fetch("http://localhost:8080/api/v1/operations", requestOptions)
-                .then((response) => response.text())
-                .then((result) => {
-                    result = JSON.parse(result);
-                    resolve(result);
-                })
-                .catch((error) => reject(error));
-        })
-    }
-
-    const prepareProductItems = async (products) => {
-        let preparedItemsArr = [];
-
-        for (const key in products) {
-            if (Object.hasOwnProperty.call(products, key)) {
-                const item = products[key];
-                const product = await getProductById(item.id);
-                let item_price = item.taxValue === 0 ? item.price : item.price + (item.price * Number(`0.${item.taxValue}`)) ;
-                preparedItemsArr.push({
-                    "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
-                    "package_code": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
-                    "package_name": (product.extras && product.extras.package_name) ? product.extras.package_name : "",
-                    "product_mark": false,
-                    "product_name": product.product_name,
-                    "product_price": item_price,
-                    "total_product_price": item_price * item.count,
-                    "product_discount": item.nodiscount,
-                    "count": item.count,
-                    "product_vat_percent": item.taxValue,
-                    "other": 0
-                    // "product_label": "4780019900572",
-                    // "product_barcode": "4780019900572",
-                    // "product_without_vat": false,
-                });                
-            }
-        }
-
-        return preparedItemsArr;
-    }
-
-    const getProductById = async (id) => {
-        return new Promise((resolve, reject) => {
-            Poster.makeApiRequest(`menu.getProduct?product_id=${id}`, {
-                method: 'get',
-            }, (product) => product ? resolve(product) : reject(product));
+                    console.log("http://localhost:8080/api/v1/zReport",result);
+                    if( result.data.result.OpenTime && result.data.result.OpenTime != null){
+                        setIsShiftOpen(true);
+                    }else{
+                        setIsShiftOpen(false)
+                    }
+                }
+            })
+            .catch((error) => console.error(error));
         })
     }
 
@@ -215,6 +145,9 @@ const App = () => {
     }
 
     console.log("app_options", app_options);
+
+    console.log("contragent",contragent);
+    console.log("cashbox",cashbox);
     console.log("fiscal_module", fiscal_module);
     if(fiscal_module && fiscal_module.result ){    
         return (
@@ -234,8 +167,8 @@ const App = () => {
                         padding: "1rem",
                     }}>
                         <Routes>
-                            <Route path="/*" element={<Main cashbox={cashbox} contragent={contragent} />} />
-                            <Route path="/receipts" element={<Receipts cashbox={cashbox} contragent={contragent} />} />
+                            <Route path="/*" element={<Main cashbox={cashbox} contragent={contragent} app_options={app_options} />} />
+                            <Route path="/receipts" element={<Receipts cashbox={cashbox} contragent={contragent}/>} />
                             <Route path="/*" element={<Navigate to="/*"/>} />
                         </Routes>
                     </Layout>

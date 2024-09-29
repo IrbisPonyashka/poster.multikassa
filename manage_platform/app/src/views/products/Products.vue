@@ -95,6 +95,7 @@
                     if(productMxik && !productMxik.error){
                         // event.data.package = productMxik.packages[0];
                         // здесю нужно сохранить значение productMxik.mixkCode и productMxik.packages 
+                        event.data.product_class_name = productMxik.mxikName;
                         event.data.package = productMxik.packages || [];
                         event.api.refreshCells();
                     }
@@ -212,6 +213,17 @@
                     field: "classifier_class_code",
                     flex: 1, // Динамическая ширина
                     editable: true,
+                    cellRenderer: (params) => {
+                        console.log("classifier_class_code",params,params.data.product_class_name);
+                        const value = params.value || "";
+                        params.refreshCell();
+                        return `
+                            <div class="custom__renderer-value">
+                                <span class="custom__renderer-value-name">${params.data.product_class_name ?? params.data.product_name}</span>
+                                <span class="custom__renderer-value-code">${value}</span>
+                            </div>`;
+                    },
+                    cellEditor: "agTextCellEditor",
                 },
                 {
                     headerName: "Тип упаковки",

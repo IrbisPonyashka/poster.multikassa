@@ -15,7 +15,6 @@ class PosterMultikassaApi {
         );
 
         $auth['verify'] = md5(implode(':', $auth));
-
         return static::callCurl("POST", "https://joinposter.com/api/v2/auth/manage", $auth);
     }
 
@@ -172,6 +171,10 @@ class PosterMultikassaApi {
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
                 CURLOPT_TIMEOUT => 0,
+                /* ---- */
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                /* ---- */
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => $methodType,
@@ -181,7 +184,7 @@ class PosterMultikassaApi {
         );
 
         $response = curl_exec($curl);
-
+        
         curl_close($curl);
 
         return $response;

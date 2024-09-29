@@ -37,55 +37,55 @@ export default function Receipt(props) {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Продажа </p>
                             <p> {receipt.sale_count} </p>
-                            <p> {(receipt.total_all_sum).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.module_operation_sum_sales ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Наличные </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.module_operation_sum_cash ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Безналичные </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.module_operation_sum_card ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <hr />
 
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Возврат </p>
-                            <p> 0 </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {receipt.refund_count} </p>
+                            <p> {(receipt.refund_count).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Наличные </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.refund_count * (receipt.total_refund_cash ?? 0)).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Безналичные </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.refund_count * (receipt.total_refund_card ?? 0)).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <hr />
 
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Выручка </p>
-                            <p> 0 </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {receipt.sale_count} </p>
+                            <p> {receipt.proceeds.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Наличные </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {receipt.proceeds_cash.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Безналичные </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {receipt.proceeds_card.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <hr />
                         
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> НДС </p>
-                            <p> {(1 * 15000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> { receipt.vat.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Возвращено НДС </p>
-                            <p> {(2 * 12000).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> { receipt.vat_ret.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <hr />
                     </div>
@@ -170,37 +170,49 @@ export default function Receipt(props) {
                     </div>
                 );
             case 2: // Закрытие смены
+                return (
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>ФМ №</p>
+                            <p>{receipt.module_gnk_id}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>S/N</p>
+                            <p> {receipt.module_name}</p>
+                        </div>
+                    </div>
+                );
                 break;
             case 3: 
                 return (
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Итого к оплате</p>
-                            <p>{receipt.receipt_sum}</p>
+                            <p>{receipt.receipt_sum ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Оплачено</p>
-                            <p>{receipt.total_all_sum}</p>
+                            <p>{receipt.total_all_sum ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Наличные</p>
-                            <p>{receipt.receipt_gnk_receivedcash}</p>
+                            <p>{receipt.receipt_gnk_receivedcash ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Терминал</p>
-                            <p>{receipt.receipt_gnk_receivedcard}</p>
+                            <p>{receipt.receipt_gnk_receivedcard ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Сдача</p>
-                            <p>{receipt.total_refund_cash}</p>
+                            <p>{receipt.total_refund_cash ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Итого сумма НДС</p>
-                            <p>{receipt.total_sale_vat}</p>
+                            <p>{receipt.total_sale_vat ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Сумма скидки</p>
-                            <p>{receipt.total_refund_cash}</p>
+                            <p>{receipt.total_refund_cash ?? 0}</p>
                         </div>
                         <hr />
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>

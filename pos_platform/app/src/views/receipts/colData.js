@@ -39,15 +39,18 @@ export default function getColumnsData() {
         {
             field: "receipt_sum",
             headerName: "Сумма",
-            valueFormatter: params => String(params.value),
+            valueFormatter: params => (params.value ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            // valueFormatter: params => String(params.value ?? 0),
         },
         {
             field: "receipt_gnk_receivedcard",
             headerName: "Оплата картой",
+            valueFormatter: params => (params.value ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         },
         {
             field: "receipt_gnk_receivedcash",
             headerName: "Оплата наличными",
+            valueFormatter: params => (params.value ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         },
         // {
         //     headerName: "Из которых", // общий заголовок

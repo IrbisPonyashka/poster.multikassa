@@ -42,6 +42,9 @@ html, html body {
         & .ant-card.left_card{
             background: none;
             box-shadow: none;
+            & input[disabled] {
+                opacity: 0.75;
+            }
             & > .ant-card-body{
                 padding: 0;
             }

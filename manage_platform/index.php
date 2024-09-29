@@ -8,11 +8,12 @@ if( isset($_REQUEST["poster_auth_code"]))
 {
 
     require_once('../src/pm_rest.php');
-    
+
     $poster_tokens_json = PosterMultikassaApi::posterOAuthByCode($_REQUEST["poster_auth_code"]);
     $poster_tokens = json_decode($poster_tokens_json,1);
-    
-    // echo '<pre style="display:none">'; print_r($poster_tokens); echo '</pre>';
+
+    // echo '<pre>'; print_r($_REQUEST); echo '</pre>';
+    // echo '<pre style="display:none">'; print_r($poster_tokens_json); echo '</pre>';
     // Успешная oauth авторизация
     if(!empty($poster_tokens["access_token"]) )
     {

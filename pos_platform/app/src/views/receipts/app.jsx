@@ -78,6 +78,66 @@ export default function Receipts( {cashbox, contragent} ) {
         setIsModalVisible(false);
     };
 
+  const onGridReady = (params) => {
+    var updatePageSizeText = () => {
+      var pageSizeLabel = document.querySelector('div#ag-15-label');
+      if (pageSizeLabel) {
+        // pageSizeLabel.textContent = 'Размер страницы';  // Меняем текст на русский
+      }
+    };
+
+    // Вызываем функцию при изменении страницы
+    params.api.addEventListener('paginationChanged', updatePageSizeText);
+
+    // Также вызываем при инициализации
+    updatePageSizeText();
+  };
+
+    const localeText = {
+        // Пагинация
+        page: 'Страница',
+        more: 'Еще',
+        to: 'к',
+        of: 'из',
+        next: 'Следующая',
+        last: 'Последняя',
+        first: 'Первая',
+        previous: 'Предыдущая',
+        pageSize: 'Кол-во страниц',
+      
+        // Сообщения
+        loadingOoo: 'Загрузка...',
+        noRowsToShow: 'Нет данных для отображения',
+        
+        // Фильтры
+        filterOoo: 'Фильтр...',
+        equals: 'Равно',
+        notEqual: 'Не равно',
+        lessThan: 'Меньше',
+        greaterThan: 'Больше',
+        contains: 'Содержит',
+        notContains: 'Не содержит',
+        startsWith: 'Начинается с',
+        endsWith: 'Заканчивается на',
+      
+        // Группировка и агрегация
+        group: 'Группа',
+        columns: 'Столбцы',
+        filters: 'Фильтры',
+      
+        // Параметры агрегации
+        sum: 'Сумма',
+        min: 'Мин',
+        max: 'Макс',
+        avg: 'Среднее',
+        count: 'Кол-во',
+      
+        // Кнопки и меню
+        resetColumns: 'Сбросить столбцы',
+        expandAll: 'Развернуть все',
+        collapseAll: 'Свернуть все',
+    };
+
     console.log("receipts", rowData);
     return (
         <Content id="receipts" >
@@ -85,11 +145,13 @@ export default function Receipts( {cashbox, contragent} ) {
                 <AgGridReact
                     rowData={rowData}
                     columnDefs={colDefs}
+                    localeText={localeText}
                     domLayout='autoHeight'
                     pagination={true}  // Включаем пагинацию
                     onRowDoubleClicked={onRowDoubleClicked} // Событие двойного клика
-                    // paginationPageSize={10}  // Количество записей на одной странице
-                    // paginationPageSizeSelector={[ 10, 20, 50, 100 ]}
+                    paginationPageSize={10}  // Количество записей на одной странице
+                    paginationPageSizeSelector={[ 10, 20, 50, 100 ]}
+                    onGridReady={onGridReady}
                     // onPaginationChanged={onPaginationChanged}  // Обработка изменения страницы
                 />
             </div>
