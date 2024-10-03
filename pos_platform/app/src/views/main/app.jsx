@@ -89,7 +89,7 @@ const App = ({ cashbox, contragent, app_options }) => {
         if(sale_fields_obj.items){
             let saleOperationResponse = await saleOperationRequest(sale_fields_obj);
             if(saleOperationResponse.success){
-                showNotification( "Multikassa", "Операция прошла успешно || Operatsiya muvaffaqiyatli o'tdi");
+                // showNotification( "Multikassa", "Операция прошла успешно || Operatsiya muvaffaqiyatli o'tdi");
                 getZReportInfo();
             }else{
                 showNotification( "Multikassa", `Что-то пошло не так || Biror narsa noto'g'ri ketdi <hr> ${saleOperationResponse.data?.error?.data}`);
@@ -166,7 +166,7 @@ const App = ({ cashbox, contragent, app_options }) => {
 
         const shiftOpeningRequest = await sendRequestOperation(1);
         if(shiftOpeningRequest.success){
-            showNotification( "Multikassa", "Кассовая смена открыта || Kassa smenasi ochildi");
+            // showNotification( "Multikassa", "Кассовая смена открыта || Kassa smenasi ochildi");
             getZReportInfo();
         }else{
             showNotification( "Multikassa", "Ошибка открытия кассовой смены || Kassa smenasini ochishda xato");
@@ -179,7 +179,7 @@ const App = ({ cashbox, contragent, app_options }) => {
 
         const shiftClosingRequest = await sendRequestOperation(2);
         if(shiftClosingRequest.success){
-            showNotification( "Multikassa", "Кассовая смена закрыта || Kassa smenasi yopiq");
+            // showNotification( "Multikassa", "Кассовая смена закрыта || Kassa smenasi yopiq");
             getZReportInfo();
         }else{
             showNotification( "Multikassa", "Ошибка закрытия кассовой смены || Kassa smenasini yopishda xatolik yuz berdi");
@@ -217,10 +217,6 @@ const App = ({ cashbox, contragent, app_options }) => {
                 "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
             });
 
-            // if(type != 2){
-            //     raw.receipt_cashier_name = `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`;
-            // }
-
             const requestOptions = {
                 method: "POST",
                 headers: myHeaders,
@@ -245,6 +241,7 @@ const App = ({ cashbox, contragent, app_options }) => {
             icon: 'https://dev.joinposter.com/public/apps/multikassa-poster/icon.png',
         })
     }
+
     const showShiftTitle = () => {
         return(
             <div>
@@ -337,16 +334,6 @@ const App = ({ cashbox, contragent, app_options }) => {
                                 flexWrap: "wrap",
                             }}
                         >
-                        {/* <PosterUiKit.Button className="ib m-r-15 primary" onClick={onShiftOpening}>
-                            Открытие смены
-                        </PosterUiKit.Button>
-                        <PosterUiKit.Button className="ib m-r-15 primary" onClick={onShiftClosing}>
-                            Закрытие смены
-                        </PosterUiKit.Button> */}
-
-                        {/* <PosterUiKit.Button className="ib m-r-15 primary" onClick={onXReportGetting}>
-                            X Отчет
-                        </PosterUiKit.Button> */}
                     </div>
                     <div className="body shift-details">
                         {shiftInfo.result && isShiftOpen ? (
@@ -379,11 +366,6 @@ const App = ({ cashbox, contragent, app_options }) => {
                                         <Text strong> {shiftInfo.result.TotalSaleCard.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </Text>
                                     </Col>
                                 </Row>
-                                {/* <p>Смена открыта</p>
-                                <p>Дата открытия: {shiftInfo.result.OpenTime}</p>
-                                <p>Продаж: {shiftInfo.result.TotalSaleCount}</p>
-                                <p>Наличные: {shiftInfo.result.TotalSaleCash.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                                <p>Безналичные: {shiftInfo.result.TotalSaleCard.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p> */}
                                 <PosterUiKit.Button className="ib m-r-15 primary" onClick={onShiftClosing} style={{ marginTop: '16px'}}>
                                     Закрыть смену
                                 </PosterUiKit.Button>

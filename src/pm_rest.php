@@ -163,27 +163,41 @@ class PosterMultikassaApi {
     {
         $curl = curl_init();
         
-        curl_setopt_array(
-            $curl,
-            array(
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                /* ---- */
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => false,
-                /* ---- */
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => $methodType,
-                CURLOPT_POSTFIELDS => $params,
-                CURLOPT_HTTPHEADER => $headers
-            )
-        );
+        $options = [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            /* ---- */
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            /* ---- */
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $methodType,
+        ];
+
+        // Если метод не GET, добавляем тело запроса
+        if ($methodType !== 'GET' && !empty($params)) {
+            $options[CURLOPT_POSTFIELDS] = $params;
+        }
+
+        // Если есть заголовки, добавляем их
+        if (!empty($headers)) {
+            $options[CURLOPT_HTTPHEADER] = $headers;
+        }
+
+        curl_setopt_array($curl, $options);
 
         $response = curl_exec($curl);
+
+        // Обрабатываем ошибки
+        if ($response === false) {
+            $error = curl_error($curl);
+            curl_close($curl);
+            return json_encode(['error' => $error]);
+        }
         
         curl_close($curl);
 

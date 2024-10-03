@@ -30,7 +30,7 @@
                     readonly
                     label=""
                     class="custom-text-field"
-                    :model-value="multibank_profile.tin_or_pinfl"
+                    :model-value="multibank_profile.data.tin_or_pinfl"
                 >
                 </v-text-field>
 
@@ -41,7 +41,7 @@
                     readonly
                     label=""
                     class="custom-text-field"
-                    :model-value="multibank_profile.data.address"
+                    :model-value="multibank_profile.data.address ?? 'Не указан'"
                 >
                 </v-text-field>
 
@@ -124,14 +124,13 @@
 </template>
 
 <script>
-    console.log("multibank_profile",multibank_profile);
     export default {
         name: 'App',
         data(){
             return {
                 dialog: false, // Управляет показом/скрытием диалога
                 loading: false, // Управляет показом лоадера
-                multibank_profile: multibank_profile.success ? multibank_profile.data : false,
+                multibank_profile: multibank_profile.success ? multibank_profile : {},
                 is_staging: /^true$/i.test(poster_settings.staging),
                 without_fiscalization: /^true$/i.test(poster_settings.without_fiscalization),
             }

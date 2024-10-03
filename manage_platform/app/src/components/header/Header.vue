@@ -71,8 +71,9 @@
                 appTitle: 'Multikassa',
                 sidebar: false,
                 menuItems: [
-                    { title: 'Общие данные', path: '/', icon: 'home' },
-                    { title: 'Продукты и тех.карты', path: '/products', icon: 'face' },
+                    { title: 'Общие данные', path: '/' },
+                    { title: 'Продукты и тех.карты', path: '/products' },
+                    { title: 'Чеки', path: '/receipts' },
                 ]
             }
         },

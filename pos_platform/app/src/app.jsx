@@ -7,10 +7,6 @@ import { BrowserRouter as Router, Route, Routes, Navigate  } from 'react-router-
 
 import { Layout, Card } from 'antd';
 
-import PosterUiKit from 'poster-ui-kit';
-
-const { Content } = Layout;
-
 // Импортируем ваши компоненты страниц
 import Navbar from './components/header/app';
 import Main from './views/main/app';
@@ -149,6 +145,7 @@ const App = () => {
     console.log("contragent",contragent);
     console.log("cashbox",cashbox);
     console.log("fiscal_module", fiscal_module);
+
     if(fiscal_module && fiscal_module.result ){    
         return (
             <div
