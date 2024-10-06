@@ -28,7 +28,6 @@
     <? 
         $app_poster_settings = [
             "poster_account_domain"     =>      $app_info["response"]["COMPANY_ID"],
-            "poster_account_number"     =>      $app_info["response"]["extras"]["poster_account_number"],
             "poster_access_token"       =>      $app_info["response"]["extras"]["posterToken"],
             "multibank_access_token"    =>      $app_info["response"]["extras"]["multibankAccessToken"],
             "multibank_refresh_token"   =>      $app_info["response"]["extras"]["multibankRefreshToken"],

@@ -159,10 +159,10 @@
             async setPosterProductExtras (product_id, extras)  {
                 return new Promise((resolve, reject) => {
                     const myHeaders = new Headers();
-                    myHeaders.append("Content-Type", "application/json");
+                    myHeaders.append("Content-Type", "application/json;");
 
                     const raw = JSON.stringify({
-                        "headers": ['Content-Type: application/json'],
+                        "headers": {"Content-Type" : 'application/json; charset=UTF-8'},
                         "body": {
                             "entity_type": "product",
                             "entity_id": product_id,

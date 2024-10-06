@@ -32,13 +32,15 @@ if($_REQUEST && !empty($_REQUEST["action"]) )
         case "request":
 
             // Проверим, чтобы тело запроса было массивом
-            $body = isset($input_data['body']) ? json_encode($input_data['body']) : '';
+            // $body = isset($input_data['body']) ? json_encode($input_data['body']) : '';
+            $body = isset($input_data['body']) ? json_encode($input_data['body'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : '';
 
             // Проверим заголовки, если они есть
             $headers = [];
             if (isset($input_data['headers']) && is_array($input_data['headers'])) {
                 foreach ($input_data['headers'] as $key => $value) {
                     $headers[] = "$key: $value";
+                    // $headers[] = 'Content-Type: application/json; charset=UTF-8';
                 }
             }
             // $incomingHeaders = getallheaders(); // Используем функцию для получения заголовков
@@ -47,8 +49,9 @@ if($_REQUEST && !empty($_REQUEST["action"]) )
             //         $headers[] = "$key: $value";
             //     }
             // }
-            
-            echo PosterMultikassaApi::callCurl( $_REQUEST["request_type"] , $_REQUEST["request_url"] , $body, $headers );
+            // print_r(json_encode($body));
+            print_r(PosterMultikassaApi::callCurl( $_REQUEST["request_type"] , $_REQUEST["request_url"] , $body, $headers ));
+            // echo PosterMultikassaApi::callCurl( $_REQUEST["request_type"] , $_REQUEST["request_url"] , $body, $headers );
         break;
     }
 

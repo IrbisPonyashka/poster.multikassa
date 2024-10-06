@@ -4,6 +4,8 @@ import { Layout, Modal } from 'antd';
 
 const { Content } = Layout;
 
+import PosterUiKit from 'poster-ui-kit';
+
 export default function Receipt(props) {   
     
     useEffect( () => {
@@ -25,6 +27,38 @@ export default function Receipt(props) {
     // const [totalRows, setTotalRows] = useState(0);
 
     // const [selectedRow, setSelectedRow] = useState(null);
+    const returnReceiptBtns = (type) => {
+        return(
+            <div style={{
+                    display : "flex",
+                    justifyContent: "center",
+                    gap: "3rem",
+                    background: "#f5f5f5",
+                    position: "fixed",
+                    bottom: "0px",
+                    left: "0",
+                    width: "100%",
+                    zIndex: "1005",
+                    padding: "1rem",
+                }}>
+            
+                {type != "3" ? (
+                    <PosterUiKit.Button className="ib m-r-15" onClick={() => alert('Regular button clicked')}>
+                        Напечатать дулбикат
+                    </PosterUiKit.Button>
+                ) : (
+                    <>
+                        <PosterUiKit.Button className="ib m-r-15" onClick={() => alert('Regular button clicked')}>
+                            Возврат
+                        </PosterUiKit.Button>
+                        <PosterUiKit.Button className="ib m-r-15" onClick={() => alert('Regular button clicked')}>
+                            Напечатать дулбикат
+                        </PosterUiKit.Button>
+                    </>
+                )}
+            </div>
+        );
+    }
 
     const returnReceiptBody = (type) => {
         
@@ -108,7 +142,7 @@ export default function Receipt(props) {
                         {/* НДС */}
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>НДС: {item.VATPercent}%</p>
-                            <p>{((item.count * item.product_price) * (item.VATPercent / 100)).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p>{(item.vat).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
 
                         {/* Штрих-код и ИКПУ */}
@@ -182,7 +216,6 @@ export default function Receipt(props) {
                         </div>
                     </div>
                 );
-                break;
             case 3: 
                 return (
                     <div>
@@ -192,7 +225,7 @@ export default function Receipt(props) {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Оплачено</p>
-                            <p>{receipt.total_all_sum ?? 0}</p>
+                            <p>{receipt.total_sum ?? 0}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Наличные</p>
@@ -237,27 +270,40 @@ export default function Receipt(props) {
         console.log("cashbox",cashbox);
         console.log("contragent",contragent);
 
-        return (
-            <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>
-                {/* header */}
-                <h6>{operationTypeMapping[receipt.module_operation_type]}</h6>
-                <h6>{receipt.receipt_cashier_name}</h6>
-                <h6>{contragent.tradepoint_address}</h6>
-                <p>Дата и время: {receipt.receipt_gnk_time}</p>
-                <p>ИНН: {contragent.tin_or_pinfl}</p>
-                <hr />
-                {/* header end*/}
+        if(receipt && receipt.module_operation_type){
+            return (
+                <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>
+                    {/* header */}
+                    <h6>{operationTypeMapping[receipt.module_operation_type]}</h6>
+                    <h6>{receipt.receipt_cashier_name}</h6>
+                    <h6>{contragent.tradepoint_address}</h6>
+                    <p>Дата и время: {receipt.receipt_gnk_time}</p>
+                    <p>ИНН: {contragent.tin_or_pinfl}</p>
+                    <hr />
+                    {/* header end*/}
 
-                {/* body */}
-                {returnReceiptBody(receipt.module_operation_type)}
-                {/* body end */}
-                
-                {/* body */}
-                {returnReceiptFooter(receipt.module_operation_type)}
-                {/* body end */}
+                    {/* body */}
+                    {returnReceiptBody(receipt.module_operation_type)}
+                    {/* body end */}
+                    
+                    {/* footer */}
+                    {returnReceiptFooter(receipt.module_operation_type)}
+                    {/* footer end */}
 
-            </div>
-        );
+                    {/* bottom actions */}
+                    {returnReceiptBtns(receipt.module_operation_type)}
+                    {/* bottom actions end */}
+
+                </div>
+            );
+        }else{
+            
+            return (
+                <div style={{ fontFamily: 'monospace', textAlign: 'center' }}>
+                    <h6>Чек не найден</h6>
+                </div>
+            );
+        }
     };
 
     return (

@@ -1,24 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { Layout, Card, Typography, Row, Col, Divider } from 'antd';
+import { Layout, Card, Typography, Row, Col } from 'antd';
 
 import PosterUiKit from 'poster-ui-kit';
-
-import { useNavigate } from "react-router-dom";
 
 const { Text } = Typography;
 
 const { Content } = Layout;
 
-const App = ({ cashbox, contragent, app_options }) => {
+const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
 
-    const history = useNavigate();
-    const [shiftInfo, setShiftInfo] = useState({});
-    const [isShiftOpen, setIsShiftOpen] = useState(false);
+    // const [shiftInfo, setShiftInfo] = useState({});
+    // const [isShiftOpen, setIsShiftOpen] = useState(false);
     
     useEffect( () => {  
-        getZReportInfo();
+        
+        // getZReportInfo();
+        
     }, []);
     
     const getZReportInfo = async () => {
@@ -47,119 +46,6 @@ const App = ({ cashbox, contragent, app_options }) => {
         })
     }
     
-    Poster.on('beforeOrderClose', (data, next) => {
-        if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true"){
-            next();
-        }else if(!isShiftOpen){
-            showNotification( "Multikassa", "Для выполнения операции необходимо открыть смену || Operatsiyani bajarish uchun siz smenani ochishingiz kerak");
-        }
-    });
-
-    Poster.on('afterOrderClose', (order) => {
-        console.log("afterOrderClose", order);
-
-        if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true" && !isShiftOpen){
-            showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
-        }else if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "false" && !isShiftOpen){
-            // showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
-        }else{
-            onAfterOrderClose(order.order);
-        }
-        
-    }); 
-
-    const onAfterOrderClose = async (order) => {
-        let sale_fields_obj = {
-            "module_operation_type": "3",
-            "receipt_sum": order.total === 0 ? order.total : order.total * 100 ,
-            "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`,
-            "receipt_gnk_receivedcash": order.payedCash === 0 ? order.payedCash : order.payedCash * 100 ,
-            "receipt_gnk_receivedcard": order.payedCard === 0 ? order.payedCard : order.payedCard * 100 ,
-            "receipt_gnk_time": new Date(order.dateClose ?? order.dateStart).toLocaleString().replace(",",""),
-            "items": [],
-            "location": {
-                "latitude": 41.29671408606234,
-                "longitude": 69.21787478269367
-            }
-        }; 
-        sale_fields_obj.items = await prepareProductItems(order.products);
-        
-        console.log("sale_fields_obj", sale_fields_obj);
-
-        if(sale_fields_obj.items){
-            let saleOperationResponse = await saleOperationRequest(sale_fields_obj);
-            if(saleOperationResponse.success){
-                // showNotification( "Multikassa", "Операция прошла успешно || Operatsiya muvaffaqiyatli o'tdi");
-                getZReportInfo();
-            }else{
-                showNotification( "Multikassa", `Что-то пошло не так || Biror narsa noto'g'ri ketdi <hr> ${saleOperationResponse.data?.error?.data}`);
-            }
-            console.log("saleOperationResponse", saleOperationResponse);
-        }
-    }; 
-    
-    const saleOperationRequest = async (feilds) => {
-        return new Promise((resolve, reject) => {
-
-            const myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
-
-            const raw = JSON.stringify(feilds);
-
-            const requestOptions = {
-                method: "POST",
-                headers: myHeaders,
-                body: raw,
-                redirect: "follow"
-            };
-
-            fetch("http://localhost:8080/api/v1/operations", requestOptions)
-                .then((response) => response.text())
-                .then((result) => {
-                    result = JSON.parse(result);
-                    resolve(result);
-                })
-                .catch((error) => reject(error));
-        })
-    }
-
-    const prepareProductItems = async (products) => {
-        let preparedItemsArr = [];
-
-        for (const key in products) {
-            if (Object.hasOwnProperty.call(products, key)) {
-                const item = products[key];
-                const product = await getProductById(item.id);
-                let item_price = item.taxValue === 0 ? item.price : item.price + (item.price * Number(`0.${item.taxValue}`)) ;
-                preparedItemsArr.push({
-                    "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
-                    "package_code": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
-                    "package_name": (product.extras && product.extras.package_name) ? product.extras.package_name : "",
-                    "product_mark": false,
-                    "product_name": product.product_name,
-                    "product_price": item_price,
-                    "total_product_price": item_price * item.count,
-                    "product_discount": item.nodiscount,
-                    "count": item.count,
-                    "product_vat_percent": item.taxValue,
-                    "other": 0
-                    // "product_label": "4780019900572",
-                    // "product_barcode": "4780019900572",
-                    // "product_without_vat": false,
-                });                
-            }
-        }
-
-        return preparedItemsArr;
-    }
-
-    const getProductById = async (id) => {
-        return new Promise((resolve, reject) => {
-            Poster.makeApiRequest(`menu.getProduct?product_id=${id}`, {
-                method: 'get',
-            }, (product) => product ? resolve(product) : reject(product));
-        })
-    }
     
     const onShiftOpening = async (e) => {
         e.preventDefault();
@@ -274,7 +160,9 @@ const App = ({ cashbox, contragent, app_options }) => {
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
+
     console.log("isShiftOpen",isShiftOpen);
+
     console.log("shiftInfo",shiftInfo);
 
     if(cashbox) {

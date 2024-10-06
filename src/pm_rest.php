@@ -1,10 +1,15 @@
 <?php
 
+ini_set('display_errors', 1);
+error_reporting(-1);
 
 class PosterMultikassaApi {
 
-    const APP_ID        = 3579;
-    const APP_SECRET    = "195463b45f85f6db91a1dd14fa6d186e";
+    const APP_ID        = 3029;
+    const APP_SECRET    = "7f2cc0e2ecefdea810710bc9df3369c2";
+
+    // const APP_ID        = 3579;
+    // const APP_SECRET    = "195463b45f85f6db91a1dd14fa6d186e";
 
     public static function posterOAuthByCode($code)
     {
@@ -187,6 +192,7 @@ class PosterMultikassaApi {
         if (!empty($headers)) {
             $options[CURLOPT_HTTPHEADER] = $headers;
         }
+        // return $options;
 
         curl_setopt_array($curl, $options);
 
