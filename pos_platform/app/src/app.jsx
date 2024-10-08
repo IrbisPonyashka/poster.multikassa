@@ -108,7 +108,7 @@ const App = () => {
         console.log("afterOrderClose", order);
 
         if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true" && (!isShiftOpen || !fiscal_module.result) ){
-            showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
+            // showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
         }else if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "false" && (!isShiftOpen || !fiscal_module.result) ){
             // showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
         }else{
@@ -140,7 +140,7 @@ const App = () => {
         console.log("sale_fields_obj", sale_fields_obj);
 
         if(sale_fields_obj.items){
-            let saleOperationResponse = await saleOperationRequest( sale_fields_obj);
+            let saleOperationResponse = await cashboxOperationRequest( sale_fields_obj);
             if(saleOperationResponse.success){
                 // если всё ок, то нужно записать id чека в заказ poster'а
                 let saveReceiptIdOnOrderRes = await saveReceiptIdOnOrder(order, saleOperationResponse);
@@ -155,7 +155,7 @@ const App = () => {
         }
     }; 
     
-    const saleOperationRequest = async (feilds) => {
+    const cashboxOperationRequest = async (feilds) => {
         return new Promise((resolve, reject) => {
 
             const myHeaders = new Headers();
@@ -171,9 +171,8 @@ const App = () => {
             };
 
             fetch("http://localhost:8080/api/v1/operations", requestOptions)
-                .then((response) => response.text())
+                .then((response) => response.json())
                 .then((result) => {
-                    result = JSON.parse(result);
                     resolve(result);
                 })
                 .catch((error) => reject(error));
@@ -203,9 +202,14 @@ const App = () => {
 
         for (const key in products) {
             if (Object.hasOwnProperty.call(products, key)) {
+
                 const item = products[key];
+
                 const product = await getProductById(item.id);
-                let item_price = item.taxValue === 0 ? item.price : item.price + (item.price * Number(`0.${item.taxValue}`)) ;
+
+                let price = item.promotionPrice ?? item.price;
+                let item_price = item.taxValue === 0 ? price : price + (price * Number(`0.${item.taxValue}`)) ;
+                
                 preparedItemsArr.push({
                     "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
                     "product_package": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
@@ -244,9 +248,8 @@ const App = () => {
             };
               
             fetch("http://localhost:8080/api/v1/zReport", requestOptions)
-            .then((response) => response.text())
+            .then((response) => response.json())
             .then((result) => {
-                result = JSON.parse(result);
                 if(result.success){
                     setShiftInfo(result.data);
 
@@ -270,9 +273,8 @@ const App = () => {
             };
               
             fetch("http://localhost:8080/api/v1/cashbox", requestOptions)
-            .then((response) => response.text())
+            .then((response) => response.json())
             .then((result) => {
-                result = JSON.parse(result);
                 if(result.success){
                     setCahbox(result.data);
                 }
@@ -289,9 +291,8 @@ const App = () => {
             };
               
             fetch("http://localhost:8080/api/v1/contragents", requestOptions)
-            .then((response) => response.text())
+            .then((response) => response.json())
             .then((result) => {
-                result = JSON.parse(result);
                 if(result.success){
                     setContragent(result.data);
                 }
@@ -319,9 +320,8 @@ const App = () => {
             };
               
             fetch("http://localhost:8080/api/v1/info", requestOptions)
-            .then((response) => response.text())
+            .then((response) => response.json())
             .then((result) => {
-                result = JSON.parse(result);
                 if(result.data && result.data.result){
                     setFiscalModule(result.data);
                 }
@@ -359,6 +359,7 @@ const App = () => {
                     receipt={receipt}
                     cashbox={cashbox} 
                     contragent={contragent}
+                    cashboxOperationRequest={cashboxOperationRequest}
                 >
                 </Receipt>
             </Layout>

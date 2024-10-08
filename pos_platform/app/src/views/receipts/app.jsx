@@ -13,6 +13,8 @@ import getColumnsData from "/src/views/receipts/colData";
 
 export default function Receipts( {cashbox, contragent} ) {   
     
+    const [clickTimer, setClickTimer] = useState(null);
+
     useEffect( () => {
         getReceiptsRequest();
     }, []);
@@ -68,7 +70,26 @@ export default function Receipts( {cashbox, contragent} ) {
     }
 
     // Обработчик двойного клика на строке
+    const onCellClicked = (params) => {
+        if (clickTimer) {
+            clearTimeout(clickTimer);
+            
+            setClickTimer(null);
+
+            onRowDoubleClicked(params);  // Обрабатываем как двойное нажатие
+            
+        } else {
+            const timer = setTimeout(() => {
+                setClickTimer(null);
+            }, 300);
+
+            setClickTimer(timer);
+        }
+
+    }
+
     const onRowDoubleClicked = (params) => {
+
         setSelectedRow(params.data); // Сохраняем данные выбранной строки
         setIsModalVisible(true); // Открываем модальное окно
     };
@@ -78,20 +99,20 @@ export default function Receipts( {cashbox, contragent} ) {
         setIsModalVisible(false);
     };
 
-  const onGridReady = (params) => {
-    var updatePageSizeText = () => {
-      var pageSizeLabel = document.querySelector('div#ag-15-label');
-      if (pageSizeLabel) {
-        // pageSizeLabel.textContent = 'Размер страницы';  // Меняем текст на русский
-      }
+    const onGridReady = (params) => {
+        var updatePageSizeText = () => {
+            var pageSizeLabel = document.querySelector('div#ag-15-label');
+            if (pageSizeLabel) {
+                // pageSizeLabel.textContent = 'Размер страницы';  // Меняем текст на русский
+            }
+        };
+
+        // Вызываем функцию при изменении страницы
+        params.api.addEventListener('paginationChanged', updatePageSizeText);
+
+        // Также вызываем при инициализации
+        updatePageSizeText();
     };
-
-    // Вызываем функцию при изменении страницы
-    params.api.addEventListener('paginationChanged', updatePageSizeText);
-
-    // Также вызываем при инициализации
-    updatePageSizeText();
-  };
 
     const localeText = {
         // Пагинация
@@ -148,7 +169,8 @@ export default function Receipts( {cashbox, contragent} ) {
                     localeText={localeText}
                     domLayout='autoHeight'
                     pagination={true}  // Включаем пагинацию
-                    onRowDoubleClicked={onRowDoubleClicked} // Событие двойного клика
+                    // onRowDoubleClicked={onRowDoubleClicked} // Событие двойного клика
+                    onCellClicked={onCellClicked} // Эмуляция двойного клика для мобильных устройств
                     paginationPageSize={10}  // Количество записей на одной странице
                     paginationPageSizeSelector={[ 10, 20, 50, 100 ]}
                     onGridReady={onGridReady}
@@ -162,6 +184,7 @@ export default function Receipts( {cashbox, contragent} ) {
                 onCancel={handleCancel}
                 footer={null}
                 width={540}
+                style={{ paddingBottom: "4rem" }}
             >
                 <Receipt 
                     receipt={selectedRow}

@@ -1,18 +1,61 @@
 import React, { useState, useEffect } from 'react';
 
-import { Layout, Modal } from 'antd';
-
-const { Content } = Layout;
+import { Modal } from 'antd';
 
 import PosterUiKit from 'poster-ui-kit';
 
 export default function Receipt(props) {   
     
-    useEffect( () => {
-    }, []);
     const  receipt = props.receipt,
         cashbox = props.cashbox,
-        contragent = props.contragent;
+        contragent = props.contragent,
+        cashboxOperationRequest = props.cashboxOperationRequest;
+
+    const [items, setItems] = useState(receipt.items ? JSON.parse(receipt.items) : []);
+    console.log("items", items);
+
+    const [selectedItems, setSelectedItems] = useState({});
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [refundItems, setRefundItems] = useState([]);
+    
+    // Обрабатываем изменения receipt.items при каждом обновлении пропсов
+    useEffect(() => {
+        console.log("receipt.items", receipt.items);
+        if (receipt.items) {
+            var items = JSON.parse(receipt.items);
+            setItems(items);
+            setRefundItems(items.map(item => ({
+                ...item, 
+                count: item.count,        // Текущий счетчик
+                maxCount: item.count      // Максимальное количество (изначальное)
+            })));
+        }
+    }, [receipt.items]);
+
+    const handleReturnClick = () => {
+        setIsModalOpen(true);
+    }
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+
+
+    const handleItemChange = (itemId, count) => {
+        setSelectedItems(prevState => ({
+            ...prevState,
+            [itemId]: count,
+        }));
+    };
+
+    const handleSubmitReturn = () => {
+        console.log(refundItems, receipt);
+        // const itemsToReturn = Object.keys(selectedItems).map(itemId => ({
+        //     id: itemId,
+        //     count: selectedItems[itemId],
+        // }));
+    };
 
     const operationTypeMapping = {
         1: "Открытие смены",
@@ -24,9 +67,6 @@ export default function Receipt(props) {
         9: "Кредитный чек",
     };
     
-    // const [totalRows, setTotalRows] = useState(0);
-
-    // const [selectedRow, setSelectedRow] = useState(null);
     const returnReceiptBtns = (type) => {
         return(
             <div style={{
@@ -38,20 +78,21 @@ export default function Receipt(props) {
                     bottom: "0px",
                     left: "0",
                     width: "100%",
-                    zIndex: "1005",
+                    zIndex: "999",
                     padding: "1rem",
+                    boxShadow: "0px -1px 10px 5px #0000000f"
                 }}>
             
                 {type != "3" ? (
-                    <PosterUiKit.Button className="ib m-r-15" onClick={() => alert('Regular button clicked')}>
+                    <PosterUiKit.Button className="ib m-r-15 warning" onClick={() => alert('Regular button clicked')}>
                         Напечатать дулбикат
                     </PosterUiKit.Button>
                 ) : (
                     <>
-                        <PosterUiKit.Button className="ib m-r-15" onClick={() => alert('Regular button clicked')}>
+                        <PosterUiKit.Button className="ib m-r-15 warning" onClick={handleReturnClick}>
                             Возврат
                         </PosterUiKit.Button>
-                        <PosterUiKit.Button className="ib m-r-15" onClick={() => alert('Regular button clicked')}>
+                        <PosterUiKit.Button onClick={() => alert('Regular button clicked')}>
                             Напечатать дулбикат
                         </PosterUiKit.Button>
                     </>
@@ -125,7 +166,7 @@ export default function Receipt(props) {
                     </div>
                 )
             case 3: 
-                const items = JSON.parse(receipt.items);
+            case 4: 
                 return items.map((item, index) => (
                     <div key={index} style={{ marginBottom: '10px' }}>
                         <p style={{textAlign: 'start'}}>
@@ -216,6 +257,7 @@ export default function Receipt(props) {
                         </div>
                     </div>
                 );
+            case 4: 
             case 3: 
                 return (
                     <div>
@@ -306,9 +348,135 @@ export default function Receipt(props) {
         }
     };
 
+    const handleCountChange = (itemId, change) => {
+        setRefundItems(prevItems =>
+            prevItems.map(item =>{
+                if (item.receipt_item_id === itemId) {
+                    const newCount = item.count + change;
+                    if (newCount >= 0 && newCount <= item.maxCount) {
+                        return { ...item, count: newCount };
+                    }
+                }
+                return item;
+            })
+        );
+    };
+
+    const getItemsTotalPriceSum = () => {
+        let totalCount = 0;
+
+        refundItems?.map(item => totalCount += item.count)
+    
+        return Number(totalCount);
+    };
+
+    const getRefundBtnStatus = () => {
+        let totalCount = 0;
+        refundItems?.map(item => totalCount += item.count)
+    
+        return totalCount === 0 ? true : false;
+    };
+
+    const renderReturnSelectWindow = () => {
+        console.log("refundItems",refundItems);
+        if(refundItems) {            
+            return (
+                <Modal
+                    visible={isModalOpen}
+                    onCancel={handleCancel}
+                    footer={null}
+                    width={540}
+                    centered={true}
+                    style={{
+                      bottom: 20,
+                    }}
+                >
+                    <table>
+                        {refundItems.map(item => (
+                            <tr key={item.receipt_item_id} style={{ marginBottom: '10px' }}>
+                                {/* <PosterUiKit.FormGroup label={item.product_name} vertical ></PosterUiKit.FormGroup> */}
+                                <tr label={item.product_name} vertical 
+                                    style={{
+                                        display: "flex",
+                                        alignTtems: "center",
+                                        justifyContent: "start",
+                                        gap: "1rem"
+                                    }}>
+                                    <td>
+                                        <strong>
+                                            {item.product_name}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        {(item.count * item.product_price).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} сум
+                                    </td>
+                                    <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <button onClick={() => {
+                                            console.log("onRemoveItem", item);
+                                            handleCountChange(item.receipt_item_id, -1)
+                                        }} >
+                                            -
+                                        </button>
+                                        <span>{item.count}</span>
+                                        <button onClick={() => {
+                                            console.log("onAddItem", item);
+                                            handleCountChange(item.receipt_item_id, +1);
+                                        }} >
+                                            +
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tr>
+                        ))}
+
+                        <tr 
+                            style={{
+                                display:"felx",
+                                justifyContent:"space-between",
+                                marginBottom: '10px'
+                            }}
+                        >
+                            <td>
+                                <strong>Сумма возврата : </strong>
+                            </td>
+                            <td>
+                                <span>
+                                    { getItemsTotalPriceSum().toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr style={{ marginBottom: '10px' }}>
+                            <PosterUiKit.SegmentRadio
+                                value="card"
+                                segments={[
+                                    { title: 'Наличными', name: 'card', value: 'card' },
+                                    { title: 'Картой', name: 'cash', value: 'cash' },
+                                ]}
+                            />
+                        </tr>
+
+                        <PosterUiKit.Button className="ib m-r-15 warning" style={{marginTop: "1rem"}} disabled={ getRefundBtnStatus() } onClick={handleSubmitReturn}>
+                            Возврат
+                        </PosterUiKit.Button>
+
+                    </table>
+                </Modal>
+            );
+        }else{
+            return (
+                <h1>undefined</h1>
+            );
+        }
+    };
+
     return (
-        <div> 
-            {receipt && returnReceiptDetail()} 
+        <div
+            style={{
+                marginBottom: "4rem"
+            }}> 
+            { receipt && returnReceiptDetail() }
+            { refundItems && renderReturnSelectWindow() } 
         </div>
     );  
 }

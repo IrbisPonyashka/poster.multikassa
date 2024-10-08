@@ -11,6 +11,52 @@ html, html body {
     font-weight: normal;
     font-size: 16px;
     font-family: Lato, 'Helvetica Neue', Helvetica, sans-serif;
+    & .p-btn{
+        max-width: 185px;
+        min-width: 135px;
+        width: 100%;
+        
+        &.default {
+            background: #8d8d8d;
+            &:hover {
+                background: #a3a3a3;
+            }
+        }
+        &.success {
+            background: #57A84A;
+            &:hover {
+                background: #66CA56;
+            }
+        }
+        &.info {
+            background: #1EACDC;
+            &:hover {
+                background: #21bdf1;
+            }
+        }
+        &.primary {
+            background: #1677ff;
+            &:hover {
+                background: #237fff;
+            }
+        }
+        &.warning {
+            background: #f0ad4e;
+            &:hover {
+                background: #ffba58;
+            }
+        }
+        &.danger {
+            background: #d9534f;
+            &:hover {
+                background: #ec5e59;
+            }
+        }
+        &disabled {
+            cursor: default;
+            &:hover {}
+        }
+    }
 
     h1 {
         font-size: 30px;
@@ -54,48 +100,6 @@ html, html body {
             max-width: 600px;
             width: 100%;
         }
-        & .p-btn{
-            max-width: 150px;
-            min-width: 135px;
-            width: 100%;
-            
-            &.default {
-                background: #8d8d8d;
-                &:hover {
-                    background: #a3a3a3;
-                }
-            }
-            &.success {
-                background: #57A84A;
-                &:hover {
-                    background: #66CA56;
-                }
-            }
-            &.info {
-                background: #1EACDC;
-                &:hover {
-                    background: #21bdf1;
-                }
-            }
-            &.primary {
-                background: #1677ff;
-                &:hover {
-                    background: #237fff;
-                }
-            }
-            &.warning {
-                background: #f0ad4e;
-                &:hover {
-                    background: #ffba58;
-                }
-            }
-            &.danger {
-                background: #d9534f;
-                &:hover {
-                    background: #ec5e59;
-                }
-            }
-        }
     }
     @media screen and (max-width: 900px) {
         #main {
@@ -134,6 +138,17 @@ html, html body {
     //     }
     // }
 }
+
+
+tr td:first-of-type {
+    width: 180px;
+    text-wrap: nowrap;
+    overflow: hidden;
+}
+tr td:nth-of-type(2) {
+    width: 125px;
+}
+
 .ant-modal-body p {
     margin: 0;
 }
