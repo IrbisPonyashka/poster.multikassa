@@ -138,7 +138,11 @@ html, html body {
     //     }
     // }
 }
-
+.ant-modal-content {
+    & td:nth-last-of-type {
+        text-align: end;
+    }
+}
 
 tr td:first-of-type {
     width: 180px;

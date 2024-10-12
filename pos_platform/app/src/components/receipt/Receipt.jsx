@@ -11,7 +11,7 @@ export default function Receipt(props) {
         contragent = props.contragent,
         cashboxOperationRequest = props.cashboxOperationRequest;
 
-    const [items, setItems] = useState(receipt.items ? JSON.parse(receipt.items) : []);
+    const [items, setItems] = useState(receipt?.items ? JSON.parse(receipt.items) : []);
     console.log("items", items);
 
     const [selectedItems, setSelectedItems] = useState({});
@@ -19,6 +19,8 @@ export default function Receipt(props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [refundItems, setRefundItems] = useState([]);
+
+    const [payType, setPayType] = useState("card");
     
     // Обрабатываем изменения receipt.items при каждом обновлении пропсов
     useEffect(() => {
@@ -50,11 +52,28 @@ export default function Receipt(props) {
     };
 
     const handleSubmitReturn = () => {
-        console.log(refundItems, receipt);
-        // const itemsToReturn = Object.keys(selectedItems).map(itemId => ({
-        //     id: itemId,
-        //     count: selectedItems[itemId],
-        // }));
+        var refundReceiptObj = {
+            "module_operation_type": "4",
+            "receipt_cashier_name": receipt.receipt_cashier_name,
+            "receipt_gnk_time": getCurrentDateTime(),
+            "receipt_sum": 2800000,
+            "receipt_gnk_receivedcash": 5000000,
+            "receipt_gnk_receivedcard": 0,
+            "RefundInfo":{
+                "TerminalID": receipt.receipt_gnk_terminalid,
+                "ReceiptSeq": receipt.receipt_gnk_receiptseq, 
+                "DateTime": receipt.receipt_gnk_datetime,
+                "FiscalSign": receipt.receipt_gnk_fiscalsign
+            },
+            "items": refundItems,
+            "location": {
+                "latitude": 41.29671408606234,
+                "longitude": 69.21787478269367
+            }
+        };
+
+        
+        console.log(refundReceiptObj);
     };
 
     const operationTypeMapping = {
@@ -354,7 +373,19 @@ export default function Receipt(props) {
                 if (item.receipt_item_id === itemId) {
                     const newCount = item.count + change;
                     if (newCount >= 0 && newCount <= item.maxCount) {
-                        return { ...item, count: newCount };
+                        return { 
+                            "classifier_class_code":        item.classifier_class_code ?? "",
+                            "product_mark":                 item.product_mark ?? "",
+                            "product_name":                 item.product_name,
+                            "product_label":                item.product_label ?? "",
+                            "product_barcode":              item.product_barcode ?? "",
+                            "product_price":                item.product_price,
+                            "product_without_vat":          item.product_without_vat ?? "",
+                            "product_discount":             item.product_discount,
+                            "count":                        newCount,
+                            "product_vat_percent":          item.product_vat_percent,
+                            "other":                        item.other ?? ""
+                        };
                     }
                 }
                 return item;
@@ -363,6 +394,14 @@ export default function Receipt(props) {
     };
 
     const getItemsTotalPriceSum = () => {
+        let totalSum = 0;
+
+        refundItems?.map(item => totalSum += (item.count * item.product_price))
+    
+        return Number(totalSum);
+    };
+
+    const getItemsTotalCount = () => {
         let totalCount = 0;
 
         refundItems?.map(item => totalCount += item.count)
@@ -393,13 +432,14 @@ export default function Receipt(props) {
                 >
                     <table>
                         {refundItems.map(item => (
-                            <tr key={item.receipt_item_id} style={{ marginBottom: '10px' }}>
+                            <tr key={item.receipt_item_id} >
                                 {/* <PosterUiKit.FormGroup label={item.product_name} vertical ></PosterUiKit.FormGroup> */}
                                 <tr label={item.product_name} vertical 
                                     style={{
                                         display: "flex",
                                         alignTtems: "center",
                                         justifyContent: "start",
+                                        marginBottom: '10px',
                                         gap: "1rem"
                                     }}>
                                     <td>
@@ -431,13 +471,35 @@ export default function Receipt(props) {
 
                         <tr 
                             style={{
-                                display:"felx",
-                                justifyContent:"space-between",
-                                marginBottom: '10px'
+                                display:"flex",
+                                justifyContent:"start",
+                                marginBottom: '1rem',
+                                gap: "1rem"
+                            }}
+                        >
+                            <td>
+                                <strong>Количество продуктов : </strong>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                                <span>
+                                    { getItemsTotalCount().toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+                                </span>
+                            </td>
+                        </tr>
+                        <tr 
+                            style={{
+                                display:"flex",
+                                justifyContent:"start",
+                                marginBottom: '1rem',
+                                gap: "1rem"
                             }}
                         >
                             <td>
                                 <strong>Сумма возврата : </strong>
+                            </td>
+                            <td>
                             </td>
                             <td>
                                 <span>
@@ -448,10 +510,13 @@ export default function Receipt(props) {
 
                         <tr style={{ marginBottom: '10px' }}>
                             <PosterUiKit.SegmentRadio
-                                value="card"
+                                value={payType}
+                                onChange={(e) => {
+                                    console.log(e);
+                                }}
                                 segments={[
-                                    { title: 'Наличными', name: 'card', value: 'card' },
-                                    { title: 'Картой', name: 'cash', value: 'cash' },
+                                    { title: 'Наличные', name: 'card', value: 'card' },
+                                    { title: 'Карта', name: 'cash', value: 'cash' },
                                 ]}
                             />
                         </tr>
@@ -469,6 +534,22 @@ export default function Receipt(props) {
             );
         }
     };
+    
+    function getCurrentDateTime() {
+        let now = new Date();
+        
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0
+        let day = String(now.getDate()).padStart(2, '0');
+        
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        // Собираем всё в нужном формате
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
 
     return (
         <div

@@ -31,6 +31,8 @@ const App = () => {
     const [shiftInfo, setShiftInfo] = useState({});
 
     const [isShiftOpen, setIsShiftOpen] = useState(false);
+
+    const [fiscalDevice, setfiscalDevice] = useState({});
     
     // const [shiftInfo, setShiftInfo] = useState({});
     // const [isShiftOpen, setIsShiftOpen] = useState(false);
@@ -46,7 +48,7 @@ const App = () => {
         getContragentInfo();
 
         getPosterAppOptions();
-
+        
         Poster.interface.showApplicationIconAt({
             functions: 'Multikassa',
             receiptsArchive: 'Multikassa',
@@ -66,17 +68,13 @@ const App = () => {
                     width = window.outerWidth - (window.outerWidth * 0.5);
                     height = window.outerHeight - (window.outerHeight * 0.26);
                     
-                    // console.log("fiscal_module.result", fiscal_module);
-                    // if(!fiscal_module.result) break;
-
-                    
                     let orderExtras = data.order?.extras ?? {} ;
                     let orderMultikassaReceipt = orderExtras.multikassaReceipt ? JSON.parse(orderExtras.multikassaReceipt) : {};
                     let orderMultikassaReceiptId = orderMultikassaReceipt.receipt?.receipt_gnk_receiptseq ?? null ;
                     
                     orderMultikassaReceiptId ? title =  `Чек  № ${orderMultikassaReceiptId}` : null ;
                     
-                    console.log("orderMultikassaReceipt", orderMultikassaReceipt);
+                    // console.log("orderMultikassaReceipt", orderMultikassaReceipt);
                     // console.log(orderExtras, orderMultikassaReceipt, orderMultikassaReceiptId);
 
 
@@ -92,9 +90,7 @@ const App = () => {
         
     }, []);
 
-    
     Poster.on('beforeOrderClose', (data, next) => {
-        console.log("beforeOrderClose", data, next);
         if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true"){
             next();
         }else if(!fiscal_module.result){
@@ -112,15 +108,74 @@ const App = () => {
         }else if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "false" && (!isShiftOpen || !fiscal_module.result) ){
             // showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
         }else{
-            onAfterOrderClose(order.order);
+            // onAfterOrderClose(order.order);
         }
         
     }); 
+    
+    console.log("fiscalDevice", fiscalDevice);
+
+    if(fiscalDevice.name){
+
+        fiscalDevice.onPrintFiscalReceipt( async (info, next) => {
+            if( info.type == "sell" ){
+                
+                var fiscalOperationResult = await onAfterOrderClose(info.order);
+                if(fiscalOperationResult.success){
+                    next({
+                        errorCode: 0,
+                        success: true
+                    });
+                }else{
+                    next({
+                        errorCode: 6,
+                        success: false,
+                        errorText: fiscalOperationResult.data.error.message
+                    });
+                }
+                
+            }else if( info.type == "return" ) {
+                
+                var fiscalOperationResult = await onAfterOrderReturn(info.order);
+                if(fiscalOperationResult.success){
+                    next({
+                        errorCode: 0,
+                        success: true
+                    });
+                }else{
+                    next({
+                        errorCode: 6,
+                        success: false,
+                        errorText: fiscalOperationResult.data.error.message
+                    });
+                }
+            }
+            console.log("onPrintFiscalReceipt", info);
+        })
+        
+        fiscalDevice.onPrintXReport( async (info, next) => {
+            console.log("onPrintXReport", info);
+            next({
+                errorCode: 0,
+                success: true
+            });
+        })
+        
+        fiscalDevice.onPrintZReport( async (info, next) => {
+            console.log("onPrintZReport", info);
+            next({
+                errorCode: 0,
+                success: true
+            });
+        })
+    }
 
     const onAfterOrderClose = async (order) => {
         let payedCert = order.payedCert === 0 ? order.payedCert : order.payedCert * 100;
         let payedCard = order.payedCash === 0 ? order.payedCash : order.payedCash * 100;
         let payedCash = order.payedCard === 0 ? order.payedCard : order.payedCard * 100;
+
+        console.log("cashbox", cashbox);
 
         let sale_fields_obj = {
             "module_operation_type": "3",
@@ -135,23 +190,91 @@ const App = () => {
                 "longitude": 69.21787478269367
             }
         }; 
-        sale_fields_obj.items = await prepareProductItems(order.products);
         
-        console.log("sale_fields_obj", sale_fields_obj);
+        sale_fields_obj.items = await prepareProductItems(order.products);
 
         if(sale_fields_obj.items){
             let saleOperationResponse = await cashboxOperationRequest( sale_fields_obj);
+            console.log("saleOperationResponse", saleOperationResponse);
             if(saleOperationResponse.success){
                 // если всё ок, то нужно записать id чека в заказ poster'а
                 let saveReceiptIdOnOrderRes = await saveReceiptIdOnOrder(order, saleOperationResponse);
+                
                 console.log("saveReceiptIdOnOrderRes",saveReceiptIdOnOrderRes);
-
+                
                 // showNotification( "Multikassa", "Операция прошла успешно || Operatsiya muvaffaqiyatli o'tdi");
                 getZReportInfo();
+
+                return saleOperationResponse;
             }else{
                 showNotification( "Multikassa", `Что-то пошло не так || Biror narsa noto'g'ri ketdi <hr> ${saleOperationResponse.data?.error?.data}`);
+                
+                return saleOperationResponse;
             }
+        }
+    }; 
+
+    const onAfterOrderReturn = async (order) => {
+        console.log("order", order);
+        
+        var receipt = {};
+
+        if(order.extras && order.extras.multikassaReceipt){
+            receipt = JSON.parse(order.extras.multikassaReceipt);
+            if(receipt.receipt){
+                receipt = receipt.receipt;
+            }else{
+                return {
+                    success: false,
+                    data: {
+                        "error": {
+                            "message": "Чек не найден в системе Multikassa",
+                        }
+                    }
+                };
+            }
+        }else{
+            return {
+                success: false,
+                data: {
+                    "error": {
+                        "message": "Чек не найден в системе Multikassa",
+                    }
+                }
+            };
+        }
+
+        var refundReceiptObj = {
+            "module_operation_type": "4",
+            "receipt_cashier_name": receipt.receipt_cashier_name,
+            "receipt_gnk_time": new Date(order.dateClose ?? order.dateStart).toLocaleString().replace(",",""),
+            "receipt_sum": receipt.receipt_sum,
+            "receipt_gnk_receivedcash": receipt.receipt_gnk_receivedcash,
+            "receipt_gnk_receivedcard": 0,
+            "RefundInfo":{
+                "TerminalID": receipt.receipt_gnk_terminalid,
+                "ReceiptSeq": receipt.receipt_gnk_receiptseq, 
+                "DateTime": receipt.receipt_gnk_datetime,
+                "FiscalSign": receipt.receipt_gnk_fiscalsign
+            },
+            "location": {
+                "latitude": 41.29671408606234,
+                "longitude": 69.21787478269367
+            }
+        };
+        
+        refundReceiptObj.items = await prepareProductItems(order.products);
+
+        if(refundReceiptObj.items){
+            let saleOperationResponse = await cashboxOperationRequest( refundReceiptObj);
+
             console.log("saleOperationResponse", saleOperationResponse);
+
+            if(saleOperationResponse.success){
+                return saleOperationResponse;
+            }else{
+                return saleOperationResponse;
+            }
         }
     }; 
     
@@ -187,7 +310,6 @@ const App = () => {
                     receipt: sale_result.data
                 })
             );
-            console.log("Poster.orders.setExtras",result);
             if(result.success){
                 resolve(result.success)
             }else{
@@ -253,11 +375,12 @@ const App = () => {
                 if(result.success){
                     setShiftInfo(result.data);
 
-                    console.log("http://localhost:8080/api/v1/zReport",result);
                     if( result.data.result.OpenTime && result.data.result.OpenTime != null){
                         setIsShiftOpen(true);
+                        resolve(true);
                     }else{
                         setIsShiftOpen(false)
+                        resolve(false);
                     }
                 }
             })
@@ -305,14 +428,19 @@ const App = () => {
         Poster.makeApiRequest('settings.getAllSettings', {
             method: 'get'
         
-        }, (options) => {
+        }, async (options) => {
             if (options) {
+                
+                var printers = await Poster.devices.getAll({ type: 'fiscalPrinter' });
+                setfiscalDevice(printers[0] ?? {});
+
                 setAppOptions(options);
             }
         });
     }
 
     const getFiscalModuleInfo = async () => {
+
         return new Promise((resolve, reject) => {
             const requestOptions = {
                 method: "GET",
@@ -330,6 +458,8 @@ const App = () => {
             .catch((error) => console.error(error));
         })
     }
+
+    // const onPrintFiscalReceipt = async () => {};
     
     const showNotification = ( title, message ) => {
         Poster.interface.showNotification({

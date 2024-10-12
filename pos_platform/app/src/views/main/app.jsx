@@ -46,7 +46,6 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
         })
     }
     
-    
     const onShiftOpening = async (e) => {
         e.preventDefault();
 
