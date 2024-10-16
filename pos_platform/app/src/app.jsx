@@ -32,7 +32,7 @@ const App = () => {
 
     const [isShiftOpen, setIsShiftOpen] = useState(false);
 
-    const [fiscalDevice, setfiscalDevice] = useState({});
+    const [fiscalDevice, setfiscalDevice] = useState(false);
     
     // const [shiftInfo, setShiftInfo] = useState({});
     // const [isShiftOpen, setIsShiftOpen] = useState(false);
@@ -68,17 +68,19 @@ const App = () => {
                     width = window.outerWidth - (window.outerWidth * 0.5);
                     height = window.outerHeight - (window.outerHeight * 0.26);
                     
-                    let orderExtras = data.order?.extras ?? {} ;
-                    let orderMultikassaReceipt = orderExtras.multikassaReceipt ? JSON.parse(orderExtras.multikassaReceipt) : {};
-                    let orderMultikassaReceiptId = orderMultikassaReceipt.receipt?.receipt_gnk_receiptseq ?? null ;
-                    
-                    orderMultikassaReceiptId ? title =  `Чек  № ${orderMultikassaReceiptId}` : null ;
-                    
-                    // console.log("orderMultikassaReceipt", orderMultikassaReceipt);
-                    // console.log(orderExtras, orderMultikassaReceipt, orderMultikassaReceiptId);
+                    console.log("receiptsArchive_order", data.order);
 
+                    if( !data.order.extras) {
+                        title =  `Чек не фискализирован` ;
+                    }else{
+                        let orderExtras = data.order?.extras ?? {} ;
+                        let orderMultikassaReceipt = orderExtras.multikassaReceipt ? JSON.parse(orderExtras.multikassaReceipt) : {};
+                        let orderMultikassaReceiptId = orderMultikassaReceipt.receipt?.receipt_gnk_receiptseq ?? null ;
+                        
+                        orderMultikassaReceiptId ? title =  `Чек  № ${orderMultikassaReceiptId}` : null ;
 
-                    setReceipt(orderMultikassaReceipt.receipt);
+                        setReceipt(orderMultikassaReceipt.receipt);
+                    }
                 break;
                 case "functions":
                     title = 'Multikassa';
@@ -90,7 +92,8 @@ const App = () => {
         
     }, []);
 
-    Poster.on('beforeOrderClose', (data, next) => {
+    // Смысла нет, как вариант можно вывести попап с сообщением
+    /* Poster.on('beforeOrderClose', (data, next) => {
         if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true"){
             next();
         }else if(!fiscal_module.result){
@@ -98,26 +101,30 @@ const App = () => {
         }else if(!isShiftOpen){
             showNotification( "Multikassa", "Для выполнения операции необходимо открыть смену || Operatsiyani bajarish uchun siz smenani ochishingiz kerak");
         }
-    });
+    }); */
 
+    // Закрытие просто чека, также не смысла 
     Poster.on('afterOrderClose', (order) => {
         console.log("afterOrderClose", order);
 
-        if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true" && (!isShiftOpen || !fiscal_module.result) ){
+        /* if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true" && (!isShiftOpen || !fiscal_module.result) ){
             // showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
         }else if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "false" && (!isShiftOpen || !fiscal_module.result) ){
             // showNotification( "Multikassa", "Фискализация отключена || Fiskalizatsiya o‘chirilgan");
         }else{
             // onAfterOrderClose(order.order);
-        }
+        } */
         
     }); 
     
-    console.log("fiscalDevice", fiscalDevice);
-
-    if(fiscalDevice.name){
-
+    
+    if(fiscalDevice && fiscalDevice.name){
+        console.log("fiscalDevice", fiscalDevice);
+        
+        // Закрытие фискального чека, тут можно прервать операцию 
         fiscalDevice.onPrintFiscalReceipt( async (info, next) => {
+            console.log("onPrintFiscalReceipt", info);
+
             if( info.type == "sell" ){
                 
                 var fiscalOperationResult = await onAfterOrderClose(info.order);
@@ -150,7 +157,6 @@ const App = () => {
                     });
                 }
             }
-            console.log("onPrintFiscalReceipt", info);
         })
         
         fiscalDevice.onPrintXReport( async (info, next) => {
@@ -207,8 +213,6 @@ const App = () => {
 
                 return saleOperationResponse;
             }else{
-                showNotification( "Multikassa", `Что-то пошло не так || Biror narsa noto'g'ri ketdi <hr> ${saleOperationResponse.data?.error?.data}`);
-                
                 return saleOperationResponse;
             }
         }
@@ -431,8 +435,29 @@ const App = () => {
         }, async (options) => {
             if (options) {
                 
-                var printers = await Poster.devices.getAll({ type: 'fiscalPrinter' });
-                setfiscalDevice(printers[0] ?? {});
+                var devices = await Poster.devices.getAll({ type: 'fiscalPrinter' });
+                devices = devices.filter((deivce) => deivce.name == "multikassa_fm" );
+                
+                console.log("devices", devices);
+
+                if(devices[0] && devices[0].name == "multikassa_fm"){
+                    const device = devices[0];
+
+                    device.setDefault();
+                    device.setOnline();
+
+                    setfiscalDevice(device);
+                }else{
+                    const device = await Poster.devices.create({
+                        deviceClass: 'platformOnlineFiscal',
+                        name: 'multikassa_fm'
+                    });
+                    if(device)
+                        device.setDefault(),
+                        device.setOnline(),
+                        setfiscalDevice(device);
+                }
+
 
                 setAppOptions(options);
             }
@@ -534,6 +559,7 @@ const App = () => {
                     width: "100%",
                     margin: "0 auto",
                     padding: "1rem",
+                    height: "100%"
                 }}>
                     <Card
                         title="Фискальный модуль не найден или касса не настроена"
