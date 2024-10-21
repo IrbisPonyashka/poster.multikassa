@@ -10,6 +10,7 @@ import { Layout, Card } from 'antd';
 // Импортируем ваши компоненты страниц
 import Navbar from './components/header/app';
 import Receipt from "/src/components/receipt/Receipt";
+import ScanMarkComponent from './components/onScanMark/ScanMarkComponent';
 
 import Main from './views/main/app';
 import Receipts from './views/receipts/app';
@@ -33,6 +34,8 @@ const App = () => {
     const [isShiftOpen, setIsShiftOpen] = useState(false);
 
     const [fiscalDevice, setfiscalDevice] = useState(false);
+    
+    const [orderData, setOrderData] = useState(false);
     
     // const [shiftInfo, setShiftInfo] = useState({});
     // const [isShiftOpen, setIsShiftOpen] = useState(false);
@@ -92,16 +95,48 @@ const App = () => {
         
     }, []);
 
-    // Смысла нет, как вариант можно вывести попап с сообщением
-    /* Poster.on('beforeOrderClose', (data, next) => {
-        if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true"){
+
+    Poster.on('beforeOrderClose', async (data, next) => {
+        console.log("beforeOrderClose", data);
+        const order = data.order;
+
+        next();
+        // if(order.extras && order.extras.productsLabels){
+        // }
+        
+
+        // Poster.interface.scanBarcode()
+        //     .then(function (code) {
+        //         console.log('scan_code', code);
+
+        // })
+        // data.order.products[0].label = "adjhliawhdawhd_Test";
+        
+        // var result = await Poster.orders.setExtras(
+        //     data.order.id, "productsLabels",
+        //     JSON.stringify([
+        //         {
+        //             product_id:"213123",
+        //             product_label:"testqouiweeryu",
+        //         }
+        //     ])
+        // );
+        // if(result.success){
+        //     next({order:data.order, payButton: 'Сканировать маркировку' });
+        // }else{
+        //     next();
+        // }
+
+
+        /* if(app_options.extras.withoutFiscalization && app_options.extras.withoutFiscalization == "true"){
             next();
         }else if(!fiscal_module.result){
             showNotification( "Multikassa", "Фискализация отключена");
         }else if(!isShiftOpen){
             showNotification( "Multikassa", "Для выполнения операции необходимо открыть смену || Operatsiyani bajarish uchun siz smenani ochishingiz kerak");
-        }
-    }); */
+        } */
+
+    });
 
     // Закрытие просто чека, также не смысла 
     Poster.on('afterOrderClose', (order) => {
@@ -115,8 +150,43 @@ const App = () => {
             // onAfterOrderClose(order.order);
         } */
         
-    }); 
+    });
     
+    // При добавлении/изменении товара в заказе
+    Poster.on('orderProductChange', async (order) => {
+
+        console.log("orderProductChange", order);
+
+        // Если есть продукты
+        if(order.product.count != 0) {
+            var product = await getProductById(order.product.id);
+            
+            // Если в настройке задано что продукт маркируемый
+            if(product.extras && product.extras.product_mark && product.extras.product_mark == "1") 
+            {
+
+                setPopupType("onScanProducts");
+                setOrderData(order);
+
+                if(orderData){
+                    for (let index in orderData.order.products) {
+                        let product = orderData.order.products[index];
+                        
+                        if(product.id === order.product.id && product.count > order.product.count){
+                            return;
+                        }
+                    }
+                }
+        
+                Poster.interface.popup({
+                    width: window.outerWidth - (window.outerWidth * 0.5),
+                    height: window.outerHeight - (window.outerHeight * 0.26),
+                    title: "Сканирование маркировки"
+                });
+
+            }
+        }
+    });
     
     if(fiscalDevice && fiscalDevice.name){
         console.log("fiscalDevice", fiscalDevice);
@@ -131,7 +201,8 @@ const App = () => {
                 if(fiscalOperationResult.success){
                     next({
                         errorCode: 0,
-                        success: true
+                        success: true,
+                        successText: "Z-Отчет сформирован"
                     });
                 }else{
                     next({
@@ -161,22 +232,81 @@ const App = () => {
         
         fiscalDevice.onPrintXReport( async (info, next) => {
             console.log("onPrintXReport", info);
-            next({
-                errorCode: 0,
-                success: true
-            });
+
+            try {
+                // Логика формирования отчета
+                const shiftXReportRequest = await sendRequestOperation(7);            
+                console.log("shiftXReportRequest", shiftXReportRequest);
+                if(shiftXReportRequest.success && shiftXReportRequest.data)
+                {
+
+                    setPopupType("receiptsArchive");
+                    setReceipt(shiftXReportRequest.data);
+    
+                    width = window.outerWidth - (window.outerWidth * 0.5);
+                    height = window.outerHeight - (window.outerHeight * 0.26);
+
+                    Poster.interface.popup({ width: width, height: height, title: "Multikassa"});
+    
+                    next({
+                        success: true
+                    });
+                }else{
+                    next({
+                        success: false,
+                        errorText: `Error: ${shiftXReportRequest.data.error.message}`
+                    });
+                }
+
+            } catch (error) {
+                console.log("error", error);
+                next({
+                    success: false,
+                    errorText: `Error: ${error.message}`
+                });
+            }
         })
         
         fiscalDevice.onPrintZReport( async (info, next) => {
             console.log("onPrintZReport", info);
-            next({
-                errorCode: 0,
-                success: true
-            });
+            
+            try {
+                // Логика формирования отчета
+                const getZReportRequest = await getZReport();            
+                console.log("getZReportRequest", getZReportRequest);
+                if(getZReportRequest.success && getZReportRequest.data)
+                {
+                    // setPopupType("receiptsArchive");
+                    // setReceipt(getZReportRequest.data);
+    
+                    // width = window.outerWidth - (window.outerWidth * 0.5);
+                    // height = window.outerHeight - (window.outerHeight * 0.26);
+
+                    // Poster.interface.popup({ width: width, height: height, title: "Multikassa"});
+    
+                    next({
+                        success: true,
+                        successText: "Z-Отчет сформирован"
+                    });
+                }else{
+                    next({
+                        success: false,
+                        errorText: `Error: ${getZReportRequest.data.error.message}`
+                    });
+                }
+
+            } catch (error) {
+                console.log("error", error);
+                next({
+                    success: false,
+                    errorText: `Error: ${error.message}`
+                });
+            }
         })
     }
 
     const onAfterOrderClose = async (order) => {
+
         let payedCert = order.payedCert === 0 ? order.payedCert : order.payedCert * 100;
         let payedCard = order.payedCash === 0 ? order.payedCash : order.payedCash * 100;
         let payedCash = order.payedCard === 0 ? order.payedCard : order.payedCard * 100;
@@ -197,7 +327,7 @@ const App = () => {
             }
         }; 
         
-        sale_fields_obj.items = await prepareProductItems(order.products);
+        sale_fields_obj.items = await prepareProductItems(order.products, order.extras ?? false);
 
         if(sale_fields_obj.items){
             let saleOperationResponse = await cashboxOperationRequest( sale_fields_obj);
@@ -267,7 +397,7 @@ const App = () => {
             }
         };
         
-        refundReceiptObj.items = await prepareProductItems(order.products);
+        refundReceiptObj.items = await prepareProductItems(order.products, order.extras ?? false);
 
         if(refundReceiptObj.items){
             let saleOperationResponse = await cashboxOperationRequest( refundReceiptObj);
@@ -323,12 +453,11 @@ const App = () => {
         })
     }
 
-    const prepareProductItems = async (products) => {
+    const prepareProductItems = async (products, order_extras) => {
         let preparedItemsArr = [];
 
         for (const key in products) {
             if (Object.hasOwnProperty.call(products, key)) {
-
                 const item = products[key];
 
                 const product = await getProductById(item.id);
@@ -336,26 +465,52 @@ const App = () => {
                 let price = item.promotionPrice ?? item.price;
                 let item_price = item.taxValue === 0 ? price : price + (price * Number(`0.${item.taxValue}`)) ;
                 
-                preparedItemsArr.push({
-                    "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
-                    "product_package": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
-                    "product_package_name": (product.extras && product.extras.package_name) ? product.extras.package_name : "",
-                    "product_mark": false,
-                    "product_name": product.product_name,
-                    "product_price": item_price,
-                    "total_product_price": item_price * item.count,
-                    "product_discount": item.nodiscount,
-                    "count": item.count,
-                    "product_vat_percent": item.taxValue,
-                    "other": 0
-                    // "product_label": "4780019900572",
-                    // "product_barcode": "4780019900572",
-                    // "product_without_vat": false,
-                });                
+                // если в extras'е имеется продукт с подходящим айди
+                if(order_extras && order_extras.productsLabels && JSON.parse(order_extras.productsLabels)[product.id] ){
+                    var productsLabels = JSON.parse(order_extras.productsLabels)[product.id];
+                    productsLabels.forEach((product_label) => {
+                        preparedItemsArr.push(getProductObjectFields(product, item, item_price, product_label));
+                    });
+                }else{
+                    preparedItemsArr.push(getProductObjectFields(product, item, item_price));
+                }               
             }
         }
 
         return preparedItemsArr;
+    }
+
+    const getProductObjectFields = ( product, item, item_price, product_label = "" ) => {
+        /* preparedItemsArr.push({
+            "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
+            "product_package": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
+            "product_package_name": (product.extras && product.extras.package_name) ? product.extras.package_name : "",
+            "product_barcode": product.barcode ?? "",
+            "product_mark": (product.extras && product.extras.product_mark) ? product.extras.product_mark : false,
+            "product_name": product.product_name,
+            "product_price": item_price,
+            "total_product_price": item_price * item.count,
+            "product_discount": item.nodiscount,
+            "count": item.count,
+            "product_vat_percent": item.taxValue,
+            "other": 0
+        });  */
+        let product_mark = (product.extras && product.extras.product_mark) ? product.extras.product_mark : "0";
+        return {
+            "classifier_class_code": (product.extras && product.extras.classifier_class_code)? product.extras.classifier_class_code : "01902001009030002",
+            "product_package": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
+            "product_package_name": (product.extras && product.extras.package_name) ? product.extras.package_name : "",
+            "product_barcode": product.barcode ?? "",
+            "product_mark": product_mark === "1" ? true : false,
+            "product_label": product_label,
+            "product_name": product.product_name,
+            "product_price": item_price,
+            "total_product_price": item_price * item.count,
+            "product_discount": item.nodiscount,
+            "count": item.count,
+            "product_vat_percent": item.taxValue,
+            "other": 0
+        }
     }
 
     const getProductById = async (id) => {
@@ -387,6 +542,22 @@ const App = () => {
                         resolve(false);
                     }
                 }
+            })
+            .catch((error) => console.error(error));
+        })
+    }
+
+    const getZReport = async () => {
+        return new Promise((resolve, reject) => {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+              
+            fetch("http://localhost:8080/api/v1/zReport?number=1&force_to_print=1", requestOptions)
+            .then((response) => response.json())
+            .then((result) => {
+                resolve(result);
             })
             .catch((error) => console.error(error));
         })
@@ -483,6 +654,41 @@ const App = () => {
             .catch((error) => console.error(error));
         })
     }
+    
+    /**
+     * @type
+     * 1 - Открытие смены
+     * 2 - Закрытие смены
+     * 3 - Продажа
+     * 7 - Х отчет
+    */
+    const sendRequestOperation = async (type) => {
+        return new Promise((resolve, reject) => {
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+                "module_operation_type": String(type),
+                "receipt_gnk_time": getCurrentDateTime(),
+                "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+            });
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            };
+
+            fetch("http://localhost:8080/api/v1/operations", requestOptions)
+                .then((response) => response.text())
+                .then((result) => {
+                    result = JSON.parse(result);
+                    resolve(result)
+                })
+                .catch((error) => reject(error));
+        })
+    };
 
     // const onPrintFiscalReceipt = async () => {};
     
@@ -493,14 +699,31 @@ const App = () => {
             icon: 'https://dev.joinposter.com/public/apps/multikassa-poster/icon.png',
         })
     }
+    
+    function getCurrentDateTime() {
+        let now = new Date();
+        
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0
+        let day = String(now.getDate()).padStart(2, '0');
+        
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        // Собираем всё в нужном формате
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
 
-    console.log("app_options", app_options);
+    // console.log("app_options", app_options);
 
-    console.log("contragent",contragent);
+    // console.log("contragent",contragent);
 
-    console.log("cashbox",cashbox);
+    // console.log("cashbox",cashbox);
 
-    console.log("fiscal_module", fiscal_module);
+    // console.log("fiscal_module", fiscal_module);
+    
+    // console.log("orderData", orderData);
 
     if(fiscal_module && fiscal_module.result && popup_type == "receiptsArchive" ){    
         return (
@@ -519,6 +742,25 @@ const App = () => {
                 </Receipt>
             </Layout>
         )
+    }else if(fiscal_module && fiscal_module.result && popup_type == "onScanProducts" ){  
+        return (
+            <Layout style={{
+                maxWidth: "1140px",
+                width: "100%",
+                margin: "0 auto",
+                padding: "1rem",
+                background: "#fff",
+            }}>
+                <ScanMarkComponent 
+                    cashbox={cashbox} 
+                    contragent={contragent}
+                    cashboxOperationRequest={cashboxOperationRequest}
+                    orderData={orderData}
+                >
+                </ScanMarkComponent>
+            </Layout>
+        ) 
+
     }else if(fiscal_module && fiscal_module.result ){    
         return (
             <div

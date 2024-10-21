@@ -156,3 +156,51 @@ tr td:nth-of-type(2) {
 .ant-modal-body p {
     margin: 0;
 }
+
+/* Основной контейнер */
+.scan-mark-container {
+}
+
+/* Таблица для продуктов */
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Строки таблицы */
+.product-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Поле ввода */
+.input-field {
+    width: 100%;
+    max-width: 360px;
+}
+
+/* Кнопка завершения */
+.submit-button {
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .product-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .input-field {
+        max-width: 100%;
+    }
+
+    .submit-button {
+        width: 100%;
+    }
+}

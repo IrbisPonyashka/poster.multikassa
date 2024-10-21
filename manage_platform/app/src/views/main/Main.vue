@@ -217,7 +217,7 @@
                         .then((result) => {
                             result = JSON.parse(result);
                             if(result.response){
-                                window.top.location.href=`https://${poster_settings.poster_account_domain}.joinposter.com/manage/applications/multikassa-poster`;
+                                window.top.location.href=`https://${poster_settings.poster_account_domain}.joinposter.com/manage/applications/multikassa`;
                                 // window.open(window.location.href,"_parent")
                             }
                         })

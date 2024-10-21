@@ -74,6 +74,7 @@
                             classifier_class_code:      rowNode.classifier_class_code,
                             package_code:               rowNode.selectedPackage.code,
                             package_name:               rowNode.selectedPackage.name,
+                            product_mark:               rowNode.product_mark,
                         };    
                         this.is_loading = true;
                         result = await this.setPosterProductExtras(rowNode.product_id, extras);
@@ -86,7 +87,8 @@
 
             async onCellEditingStopped (event) {
                 const value = event.value;
-                console.log(event.colDef.field);
+
+                console.log(event, event.colDef.field);
                 // if(typeof value === 'number'){    
                 if(event.colDef.field == "classifier_class_code")
                 {    
@@ -241,6 +243,14 @@
                     // },
                     // editable: true,
                 },
+                {
+                    headerName: "Цифровая маркировка",
+                    field: "product_mark",
+                    cellRenderer: 'agCheckboxCellRenderer',
+                    cellEditor: 'agCheckboxCellEditor',
+                    flex: 1,
+                    editable: true,
+                },
             ]);
 
             
@@ -275,7 +285,8 @@
                                     product_id: product.product_id,
                                     product_name: product.product_name,
                                     classifier_class_code: product.extras && product.extras.classifier_class_code ? product.extras.classifier_class_code : "",
-                                    package: product.extras && product.extras.package_code && product.extras.package_name ? [{code: product.extras.package_code, name:product.extras.package_name}] : []  
+                                    package: product.extras && product.extras.package_code && product.extras.package_name ? [{code: product.extras.package_code, name:product.extras.package_name}] : [],  
+                                    product_mark: product.extras && product.extras.product_mark ? (product.extras.product_mark === "1" ? true : false) : false,
                                 }));
                                 setLoading(false);
                             }else{

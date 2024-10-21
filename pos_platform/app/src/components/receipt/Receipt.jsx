@@ -82,7 +82,7 @@ export default function Receipt(props) {
         2: "Закрытие смены",
         3: "Продажа",
         4: "Возврат",
-        7: "X отчет",
+        7: "X-Отчет",
         8: "Авансовый чек",
         9: "Кредитный чек",
     };
@@ -127,6 +127,7 @@ export default function Receipt(props) {
             case 1: // Открытие смены
                 break;
             case 2: // Закрытие смены
+            case 7: // X-отчет
                 return(
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -147,21 +148,21 @@ export default function Receipt(props) {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Возврат </p>
                             <p> {receipt.refund_count} </p>
-                            <p> {(receipt.refund_count).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.module_operation_sum_return ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Наличные </p>
-                            <p> {(receipt.refund_count * (receipt.total_refund_cash ?? 0)).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.module_operation_sum_cash_ret ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Безналичные </p>
-                            <p> {(receipt.refund_count * (receipt.total_refund_card ?? 0)).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p> {(receipt.total_refund_card ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <hr />
 
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p> Выручка </p>
-                            <p> {receipt.sale_count} </p>
+                            <p> {receipt.sale_count - receipt.refund_count} </p>
                             <p> {receipt.proceeds.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -232,7 +233,7 @@ export default function Receipt(props) {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Итого к оплате</p>
                             <p>
-                                {(receipt.receipt_sum ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+                                {( Number(receipt.receipt_sum ?? false) ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
                             </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -268,11 +269,12 @@ export default function Receipt(props) {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>S/N</p>
-                            <p> {receipt.module_name}</p>
+                            <p> {contragent.module_name}</p>
                         </div>
                     </div>
                 );
             case 2: // Закрытие смены
+            case 7: // X-отчет
                 return (
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -281,7 +283,11 @@ export default function Receipt(props) {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>S/N</p>
-                            <p> {receipt.module_name}</p>
+                            <p> {contragent.module_name}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Версия</p>
+                            <p> {receipt.app ? JSON.parse(receipt.app).version : "" }</p>
                         </div>
                     </div>
                 );
@@ -291,22 +297,25 @@ export default function Receipt(props) {
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Итого к оплате</p>
-                            <p>{((receipt.receipt_sum ? receipt.receipt_sum/100 : false) ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }</p>
+                            <p>{( (receipt.receipt_sum ? receipt.receipt_sum/100 : 0) ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Оплачено</p>
                             <p>
-                                {((receipt.total_sum ? receipt.total_sum/100 : false)  ?? receipt.receipt_sum).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+                                {( receipt.total_sum != null && receipt.total_sum !== undefined
+                                    ? receipt.total_sum / 100 
+                                    : (receipt.receipt_sum != null && receipt.receipt_sum !== undefined 
+                                        ? receipt.receipt_sum / 100 
+                                        : 0) ).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
                             </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Наличные</p>
-                            <p>{((receipt.receipt_gnk_receivedcash ? receipt.total_sum/100 : false) ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
-                                
+                            <p>{( (receipt.receipt_gnk_receivedcash ? receipt.receipt_gnk_receivedcash/100 : 0) ?? 0 ).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Терминал</p>
-                            <p>{((receipt.receipt_gnk_receivedcard ? receipt.total_sum/100 : false) ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
+                            <p>{( (receipt.receipt_gnk_receivedcard ? receipt.receipt_gnk_receivedcard/100 : 0) ?? 0).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } </p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <p>Сдача</p>

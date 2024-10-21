@@ -19,6 +19,16 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
         // getZReportInfo();
         
     }, []);
+
+    Poster.on('shiftOpen', async (data) => {
+        console.log("shiftOpen", data);
+        await sendRequestOperation(1);
+    });
+
+    Poster.on('shiftClose', async (data) => {
+        console.log("shiftClose", data);
+        await sendRequestOperation(2);
+    });
     
     const getZReportInfo = async () => {
         return new Promise((resolve, reject) => {
