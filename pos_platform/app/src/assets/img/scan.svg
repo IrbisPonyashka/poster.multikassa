@@ -1,0 +1,27 @@
+
+<svg width="240" height="240" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <defs>
+        <style>
+            .cls-1,
+            .cls-2 {
+                fill: none;
+            }
+
+            .cls-2 {
+                stroke: #00000085;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+        </style>
+    </defs>
+    <g data-name="Layer 2" id="Layer_2">
+        <g id="Workspace">
+        <rect class="cls-1" height="24" width="24"></rect>
+        <path class="cls-2" d="M9,6H7A1,1,0,0,0,6,7V9"></path>
+        <path class="cls-2" d="M15,6h2a1,1,0,0,1,1,1V9"></path>
+        <path class="cls-2" d="M18,15v2a1,1,0,0,1-1,1H15"></path>
+        <path class="cls-2" d="M9,18H7a1,1,0,0,1-1-1V15"></path>
+        <line class="cls-2" x1="6" x2="18" y1="12" y2="12"></line>
+        </g>
+    </g>
+</svg>

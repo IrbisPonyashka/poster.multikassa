@@ -1,9 +1,12 @@
+import 'polyfill-object.fromentries';
+
 // import './assets/css/basic-bootstrap.scss';
 import './assets/css/main.scss';
 
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router, Route, Routes, Navigate  } from 'react-router-dom';
+import {  HashRouter, Router, Route, Routes, Navigate  } from 'react-router-dom';
+// import { HashRouter, Routes, Route, Navigate} from 'react-router-dom';
 
 import { Layout, Card } from 'antd';
 
@@ -186,6 +189,7 @@ const App = () => {
 
             }
         }
+
     });
     
     if(fiscalDevice && fiscalDevice.name){
@@ -671,7 +675,7 @@ const App = () => {
                 "module_operation_type": String(type),
                 "receipt_gnk_time": getCurrentDateTime(),
                 "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
-            });
+            }); 
 
             const requestOptions = {
                 method: "POST",
@@ -750,6 +754,7 @@ const App = () => {
                 margin: "0 auto",
                 padding: "1rem",
                 background: "#fff",
+                height: "100%"
             }}>
                 <ScanMarkComponent 
                     cashbox={cashbox} 
@@ -770,7 +775,7 @@ const App = () => {
                 borderRadius: "8px"
             }}
             >
-                <Router>
+                <HashRouter>
                     <Navbar/>
                     <Layout style={{
                         maxWidth: "1140px",
@@ -779,22 +784,22 @@ const App = () => {
                         padding: "1rem",
                     }}>
                         <Routes>
-                            <Route path="/*" element={<Main cashbox={cashbox} contragent={contragent} app_options={app_options} shiftInfo={shiftInfo} isShiftOpen={isShiftOpen} />} />
-                            <Route path="/receipts" element={<Receipts cashbox={cashbox} contragent={contragent}/>} />
-                            <Route path="/*" element={<Navigate to="/*"/>} />
+                            <Route path="/*" element={<Main key="main" cashbox={cashbox} contragent={contragent} app_options={app_options} shiftInfo={shiftInfo} isShiftOpen={isShiftOpen} />} />
+                            <Route path="/receipts" element={<Receipts key="receipts" cashbox={cashbox} contragent={contragent}/>} />
+                            <Route path="/*" element={<Navigate to="/*" replace />} /> Перенаправляем на главную
                         </Routes>
                     </Layout>
-                </Router>
+                </HashRouter>
             </div>
         )
     }else{
         return (
             <div
-            style={{
-                background: "rgb(245 245 245)",
-                minHeight: "100%",
-                borderRadius: "8px"
-            }}
+                style={{
+                    background: "rgb(245 245 245)",
+                    minHeight: "100%",
+                    borderRadius: "8px"
+                }}
             >
                 <Layout style={{
                     maxWidth: "1140px",

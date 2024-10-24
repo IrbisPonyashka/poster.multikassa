@@ -24,6 +24,12 @@ export default function ScanMarkComponent(props) {
                 setOrder(props.orderData);
             })
         }
+        
+        // Poster.interface.scanBarcode()
+        //     .then(function (barcode) {
+        //         console.log('barcode', barcode);
+        //     })
+
     }, [props.orderData]);
 
     const handleScanInput = (e) => {
@@ -39,8 +45,6 @@ export default function ScanMarkComponent(props) {
         var prevProductsLabels = order.order.extras && order.order.extras.productsLabels && JSON.parse(order.order.extras.productsLabels)[order_product_id] 
             ? [...JSON.parse(order.order.extras.productsLabels)[order_product_id], scannedCode]
             : [scannedCode]; 
-            
-        // console.log("prevProductsLabels", prevProductsLabels );
 
         var setProductLabels = await Poster.orders.setExtras(
             String(order.order.id),
@@ -53,25 +57,8 @@ export default function ScanMarkComponent(props) {
             setScannedCode("");
             Poster.interface.closePopup();
         }else{
-            alert("Что-то пошло не так");
+            alert("Код не сохранился попробуйте заново");
         }
-        // const updatedProducts = order.products.map((product) =>
-        //     product.id === currentProduct.id
-        //         ? { ...product, extras: { ...product.extras, code: scannedCode } }
-        //         : product
-        // );
-
-        // setOrder({ ...order, products: updatedProducts });
-        // setScannedCode(''); // Очистить поле ввода
-
-        // // Переход к следующему продукту
-        // const nextProductIndex =
-        //     order.products.findIndex((p) => p.id === currentProduct.id) + 1;
-        // if (nextProductIndex < order.products.length) {
-        //     setCurrentProduct(order.products[nextProductIndex]);
-        // } else {
-        //     setCurrentProduct(null); // Все продукты обработаны
-        // }
 
         setIsLoading(false);
     };
@@ -94,29 +81,13 @@ export default function ScanMarkComponent(props) {
         })
     }
 
-    const BarcodeIcon = (props) => (
-        <svg
-            {...props}
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-                d="M2 4H4V20H2V4ZM6 4H8V20H6V4ZM10 4H12V20H10V4ZM14 4H16V20H14V4ZM18 4H20V20H18V4Z"
-                fill="#B0B0B0"
-            />
-        </svg>
-    );
-    
     return (
         <div style={styles.container}>
             {isLoading ? (
                 <Spin size="large" />
             ) : order.product ? (
                 <>
-                    <BarcodeIcon style={{ marginBottom: 20 }} />
+                    <img src="https://micros.uz/it/solutions_our/poster.multikassa/pos_platform/app/src/assets/img/scan.svg" alt="Сканирование маркировки" />
                     <Text style={styles.text}>
                         Отсканируйте марку товара{' '}
                         <strong>{ order.product.name }</strong>, чтобы
@@ -152,9 +123,9 @@ const styles = {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
         padding: 20,
         textAlign: 'center',
+        height: '100%'
     },
     text: {
         marginBottom: 20,

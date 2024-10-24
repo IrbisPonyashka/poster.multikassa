@@ -25,6 +25,7 @@
     "antd": "^5.21.0",
     "bootstrap": "^5.3.3",
     "os-browserify": "^0.3.0",
+    "polyfill-object.fromentries": "^1.0.1",
     "poster-ui-kit": "^1.2.0",
     "process": "^0.11.10",
     "prop-types": "^15.6.2",

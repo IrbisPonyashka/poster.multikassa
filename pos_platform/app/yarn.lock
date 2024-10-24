@@ -3376,6 +3376,11 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.3.1:
   resolved "https://registry.npmjs.org/picomatch/-/picomatch-2.3.1.tgz"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
+polyfill-object.fromentries@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/polyfill-object.fromentries/-/polyfill-object.fromentries-1.0.1.tgz"
+  integrity sha512-zlEL/n2S73hX7BQXIPapzirQw4yM/VC7slrcOyfbsH0ZyUQ/lLh4NF9wshSJ354v0F3KDMC8FCxeTQ7UUPpu9g==
+
 possible-typed-array-names@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/possible-typed-array-names/-/possible-typed-array-names-1.0.0.tgz"
