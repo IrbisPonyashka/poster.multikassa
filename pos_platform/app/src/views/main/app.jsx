@@ -9,10 +9,7 @@ const { Text } = Typography;
 
 const { Content } = Layout;
 
-const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
-
-    // const [shiftInfo, setShiftInfo] = useState({});
-    // const [isShiftOpen, setIsShiftOpen] = useState(false);
+const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isShiftOpen}) => {
     
     useEffect( () => {  
         
@@ -37,19 +34,21 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
                 redirect: "follow"
             };
               
-            fetch("http://localhost:8080/api/v1/zReport", requestOptions)
+            let uri_ip = cashbox_type == "vm" ? "localhost:8080" : `${Poster.settings.extras.posDeviceIpAdres}:9090`;
+            fetch(`http://${uri_ip}/api/v1/zReport`, requestOptions)
             .then((response) => response.text())
             .then((result) => {
                 result = JSON.parse(result);
+                resolve(result);
                 if(result.success){
-                    setShiftInfo(result.data);
+                    // setShiftInfo(result.data);
 
-                    console.log("http://localhost:8080/api/v1/zReport",result);
-                    if( result.data.result.OpenTime && result.data.result.OpenTime != null){
-                        setIsShiftOpen(true);
-                    }else{
-                        setIsShiftOpen(false)
-                    }
+                    console.log("getZReportInfo",result);
+                    // if( result.data.result.OpenTime && result.data.result.OpenTime != null){
+                    //     // setIsShiftOpen(true);
+                    // }else{
+                    //     // setIsShiftOpen(false)
+                    // }
                 }
             })
             .catch((error) => console.error(error));
@@ -107,7 +106,7 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
             myHeaders.append("Content-Type", "application/json");
 
             const raw = JSON.stringify({
-                "module_operation_type": String(type),
+                "module_operation_type": Number(type),
                 "receipt_gnk_time": getCurrentDateTime(),
                 "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
             });
@@ -119,7 +118,8 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
                 redirect: "follow"
             };
 
-            fetch("http://localhost:8080/api/v1/operations", requestOptions)
+            let uri_ip = cashbox_type == "vm" ? "localhost:8080" : `${Poster.settings.extras.posDeviceIpAdres}:9090`;
+            fetch(`http://${uri_ip}/api/v1/operations`, requestOptions)
                 .then((response) => response.text())
                 .then((result) => {
                     result = JSON.parse(result);
@@ -141,7 +141,7 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
         return(
             <div>
                 Смена
-                <div className="p-m-b-12"
+                <div className=""
                     style={{
                         display: "inline-block",
                         float: "right"}}>
@@ -169,12 +169,22 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-
-    console.log("isShiftOpen",isShiftOpen);
-
-    console.log("shiftInfo",shiftInfo);
-
-    if(cashbox) {
+    const returnUndefinedComponent = () => {
+        return (
+            <Card
+                style={{
+                    width: "100%"
+                }}
+                title={cashbox_type == "vm" ? "Фискальный модуль не найден или касса не настроена" : "Не удалось подключиться к устройству"}
+                bordered={false}
+            >
+            </Card>
+        )
+    }
+    console.log("cashbox", cashbox.data);
+    console.log("contragent", contragent);
+    console.log("fiscal_module", fiscal_module);
+    if(fiscal_module && fiscal_module.result && cashbox.data) {
         return (
             <Content
                 id="main"
@@ -190,7 +200,7 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
                         <PosterUiKit.FormGroup label="Пользователь" vertical >
                             <input disabled readonly type="text" value=
                                 { 
-                                    cashbox.current_cashier ?  `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}` : "" 
+                                    cashbox.data.current_cashier ?  `${cashbox.data.current_cashier.user_last_name} ${cashbox.data.current_cashier.user_first_name} ${cashbox.data.current_cashier.user_middle_name}` : "" 
                                 } />
                         </PosterUiKit.FormGroup>
 
@@ -207,11 +217,11 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
                     >
 
                         <PosterUiKit.FormGroup label="Фискальный модуль" vertical >
-                            <input type="text" disabled readonly value={cashbox.module_gnk_id} />
+                            <input type="text" disabled readonly value={cashbox?.data?.module_gnk_id} />
                         </PosterUiKit.FormGroup>
 
                         <PosterUiKit.FormGroup label="Серийный номер" vertical >
-                            <input disabled readonly type="text" value={contragent.module_name} />
+                            <input disabled readonly type="text" value={contragent.module_name ?? fiscal_module.data?.terminalId ?? fiscal_module.result?.data?.terminalId} />
                         </PosterUiKit.FormGroup>
                     </Card>
         
@@ -233,34 +243,34 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
                         >
                     </div>
                     <div className="body shift-details">
-                        {shiftInfo.result && isShiftOpen ? (
+                        {(shiftInfo.OpenTime || shiftInfo.openTime) && isShiftOpen ? (
                             <>
                                 <Row gutter={[16, 16]}>
                                     <Col span={12}>
                                         <Text type="primary">Дата открытия:</Text>
                                     </Col>
                                     <Col span={12} style={{ textAlign: 'right' }}>
-                                        <Text strong>{shiftInfo.result.OpenTime}</Text>
+                                        <Text strong>{shiftInfo.OpenTime ?? shiftInfo.openTime}</Text>
                                     </Col>
 
                                     <Col span={12}>
                                         <Text type="primary">Продаж:</Text>
                                     </Col>
                                     <Col span={12} style={{ textAlign: 'right' }}>
-                                        <Text strong>{shiftInfo.result.TotalSaleCount}</Text>
+                                        <Text strong>{shiftInfo.TotalSaleCount ?? shiftInfo.totalSaleCount}</Text>
                                     </Col>
                                     <Col span={12}>
                                         <Text type="primary">Наличные:</Text>
                                     </Col>
                                     <Col span={12} style={{ textAlign: 'right' }}>
-                                        <Text strong> {shiftInfo.result.TotalSaleCash.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </Text>
+                                        <Text strong> {(shiftInfo.TotalSaleCash ?? shiftInfo.totalSaleCash).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </Text>
                                     </Col>
 
                                     <Col span={12}>
                                         <Text type="primary">Безналичные:</Text>
                                     </Col>
                                     <Col span={12} style={{ textAlign: 'right' }}>
-                                        <Text strong> {shiftInfo.result.TotalSaleCard.toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </Text>
+                                        <Text strong> {(shiftInfo.TotalSaleCard ?? shiftInfo.totalSaleCard).toLocaleString('uz-UZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} </Text>
                                     </Col>
                                 </Row>
                                 <PosterUiKit.Button className="ib m-r-15 primary" onClick={onShiftClosing} style={{ marginTop: '16px'}}>
@@ -284,6 +294,7 @@ const App = ({ cashbox, contragent, shiftInfo, isShiftOpen}) => {
             <Content
                 id="main"
             >
+                {returnUndefinedComponent()}
             </Content>
         );
     }

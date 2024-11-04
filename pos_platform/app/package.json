@@ -22,7 +22,7 @@
     "@ant-design/icons": "^5.5.1",
     "@popperjs/core": "^2.11.8",
     "ag-grid-react": "^32.2.0",
-    "antd": "^5.21.0",
+    "antd": "^4.24.16",
     "bootstrap": "^5.3.3",
     "os-browserify": "^0.3.0",
     "polyfill-object.fromentries": "^1.0.1",
@@ -34,7 +34,8 @@
     "react-router-dom": "^6.26.2",
     "receipt": "^1.4.0",
     "sass": "^1.75.0",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "sweetalert2": "^11.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
