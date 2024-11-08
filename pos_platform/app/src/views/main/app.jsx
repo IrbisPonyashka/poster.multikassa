@@ -61,7 +61,8 @@ const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isS
         const shiftOpeningRequest = await sendRequestOperation(1);
         if(shiftOpeningRequest.success){
             // showNotification( "Multikassa", "Кассовая смена открыта || Kassa smenasi ochildi");
-            getZReportInfo();
+            // getZReportInfo();
+            location.reload();
         }else{
             showNotification( "Multikassa", "Ошибка открытия кассовой смены || Kassa smenasini ochishda xato");
         }
@@ -70,11 +71,26 @@ const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isS
 
     const onShiftClosing = async (e) => {
         e.preventDefault();
+        
+        // Если терминал подключен 
+        if(
+            Poster.settings.extras &&
+            Poster.settings.extras.cashboxType &&
+            Poster.settings.extras.cashboxType == "vm" &&
+            Poster.settings.extras.terminalDeviceIpAdres &&
+            Poster.settings.extras.terminalDevicePort
+        ){
+            let terminalReconciliationResponse = await terminalReconciliationRequest();
+            if(!terminalReconciliationResponse){
+                showNotification( "Multikassa", "Ошибка при сверке итогов || Jami qiymatlarni solishtirishda xatolik yuz berdi");
+                return false;
+            }
+        }
 
         const shiftClosingRequest = await sendRequestOperation(2);
         if(shiftClosingRequest.success){
-            // showNotification( "Multikassa", "Кассовая смена закрыта || Kassa smenasi yopiq");
-            getZReportInfo();
+            // getZReportInfo();
+            location.reload();
         }else{
             showNotification( "Multikassa", "Ошибка закрытия кассовой смены || Kassa smenasini yopishda xatolik yuz berdi");
         }
@@ -102,30 +118,35 @@ const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isS
     */
     const sendRequestOperation = async (type) => {
         return new Promise((resolve, reject) => {
-            const myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
+            console.log("sendRequestOperation -> cashbox", cashbox);
 
-            const raw = JSON.stringify({
-                "module_operation_type": Number(type),
+            let cashier = "";
+            /* Так как Толкин ничего правильно не понял, приходится делать так */
+            if(cashbox && cashbox.current_cashier){
+                cashier = typeof cashbox.current_cashier === "object" ?
+                    `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+                    : cashbox.current_cashier;
+            }
+
+            const raw = {
+                "module_operation_type": String(type),
                 "receipt_gnk_time": getCurrentDateTime(),
-                "receipt_cashier_name": `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
-            });
-
-            const requestOptions = {
-                method: "POST",
-                headers: myHeaders,
-                body: raw,
-                redirect: "follow"
+                "receipt_cashier_name": cashier
             };
-
+            
             let uri_ip = cashbox_type == "vm" ? "localhost:8080" : `${Poster.settings.extras.posDeviceIpAdres}:9090`;
-            fetch(`http://${uri_ip}/api/v1/operations`, requestOptions)
-                .then((response) => response.text())
-                .then((result) => {
-                    result = JSON.parse(result);
-                    resolve(result)
-                })
-                .catch((error) => reject(error));
+            Poster.makeRequest(`http://${uri_ip}/api/v1/operations`, {
+                method: 'post',
+                data: raw,
+                localRequest: true
+            }, (answer) => {
+                console.log("sendRequestOperation", answer);
+                if(answer.result && answer.result.success){
+                    resolve(answer.result);
+                }else{
+                    resolve(false);
+                }
+            });
         })
     };
 
@@ -181,10 +202,32 @@ const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isS
             </Card>
         )
     }
-    console.log("cashbox", cashbox.data);
+    
+    const terminalReconciliationRequest = () => {
+        return new Promise((resolve, reject) => {
+            Poster.makeRequest(`http://${Poster.settings.extras.terminalDeviceIpAdres}:${Poster.settings.extras.terminalDevicePort}/reconciliation`, {
+                method: 'post',
+                localRequest: true
+            }, (answer) => {
+                console.log("Сверка итогов => ", answer);
+                if(
+                    answer.result &&
+                    answer.result.param &&
+                    answer.result.param.status &&
+                    answer.result.param.status == "success"
+                ){
+                    resolve(true)
+                }else{
+                    resolve(false)
+                }
+            });
+        })
+    };
+
+    console.log("cashbox", cashbox);
     console.log("contragent", contragent);
     console.log("fiscal_module", fiscal_module);
-    if(fiscal_module && fiscal_module.result && cashbox.data) {
+    if(fiscal_module && fiscal_module.result && cashbox && cashbox.current_cashier) {
         return (
             <Content
                 id="main"
@@ -199,8 +242,10 @@ const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isS
                     >
                         <PosterUiKit.FormGroup label="Пользователь" vertical >
                             <input disabled readonly type="text" value=
-                                { 
-                                    cashbox.data.current_cashier ?  `${cashbox.data.current_cashier.user_last_name} ${cashbox.data.current_cashier.user_first_name} ${cashbox.data.current_cashier.user_middle_name}` : "" 
+                                {
+                                    typeof cashbox.current_cashier === "object" ?
+                                        `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+                                        : cashbox.current_cashier
                                 } />
                         </PosterUiKit.FormGroup>
 
@@ -217,11 +262,11 @@ const App = ( { fiscal_module, cashbox_type, cashbox, contragent, shiftInfo, isS
                     >
 
                         <PosterUiKit.FormGroup label="Фискальный модуль" vertical >
-                            <input type="text" disabled readonly value={cashbox?.data?.module_gnk_id} />
+                            <input type="text" disabled readonly value={contragent.module_terminalid} />
                         </PosterUiKit.FormGroup>
 
                         <PosterUiKit.FormGroup label="Серийный номер" vertical >
-                            <input disabled readonly type="text" value={contragent.module_name ?? fiscal_module.data?.terminalId ?? fiscal_module.result?.data?.terminalId} />
+                            <input disabled readonly type="text" value={contragent.module_gnk_id} />
                         </PosterUiKit.FormGroup>
                     </Card>
         

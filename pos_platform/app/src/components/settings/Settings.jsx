@@ -24,17 +24,50 @@ const Settings = (props) => {
 
     const [pos_device_port, setDevicePort] = useState("9090");
     
-    const [terminal_device_ip_adres, setTerminalIpAdres] = useState("");
+    const [terminal_device_ip_adres, setTerminalIpAdres] = useState( (cashbox_type == "vm" && Poster.settings.extras && Poster.settings.extras.terminalDeviceIpAdres) ? Poster.settings.extras.terminalDeviceIpAdres : "" );
 
-    const [terminal_device_port, setTerminalPort] = useState("");
+    const [terminal_device_port, setTerminalPort] = useState( (cashbox_type == "vm" && Poster.settings.extras && Poster.settings.extras.terminalDevicePort) ? Poster.settings.extras.terminalDevicePort : "" );
     
     useEffect(() => {  
     }, []);
 
     
-    const onSaveTerminalInfo = (e) => {
+    const onSaveTerminalInfo = async (e) => {
 
-        console.log("terminal_deviceInfo", localStorage);
+        Swal.fire({
+            title: 'Сохранение...',
+            text: 'Пожалуйста, подождите.',
+            onBeforeOpen: () => {
+                Swal.showLoading(); // Показать индикатор загрузки
+            }
+        });
+
+        let extas = {};
+
+        terminal_device_ip_adres ? extas["terminalDeviceIpAdres"] = terminal_device_ip_adres : null ;
+        terminal_device_port ? extas["terminalDevicePort"] = terminal_device_port : null ;
+
+        let setAppExtrasResponse = await setAppExtras(extas);
+
+        console.log("setAppExtrasResponse", setAppExtrasResponse);
+
+        // Закрыть модальное окно с индикатором загрузки
+        Swal.close();
+        let params = {};
+            
+        if(setAppExtrasResponse){
+            props.updateCashboxType(cashbox_type);
+            params.title = 'Успешно сохранено';
+            params.icon = 'success';
+        }else{
+            params.title = 'Что-то пошло не так';
+            params.icon = 'error';
+            params.text = 'Попробуйте еще раз';
+        }
+
+        Swal.fire(params);
+        
+        console.log(terminal_device_ip_adres, terminal_device_port);
 
     };
 
@@ -97,7 +130,9 @@ const Settings = (props) => {
             }
         });
         
-        Poster.makeRequest(`http://${ip_adres}:${port}/api/v1/info`, {
+        let url = `http://${ip_adres}:${port}${e.target.id == "kkm" ? "/api/v1/info" : "/"}`;
+        console.log("api/v1/info", url);
+        Poster.makeRequest(`${url}`, {
             method: 'get',
             timeout: 10000,
             localRequest: true
@@ -108,7 +143,10 @@ const Settings = (props) => {
             // Закрыть модальное окно с индикатором загрузки
             Swal.close();
 
-            if(answer.result != false && answer.result.status == "success"){
+            if(answer.result != false && answer.result.success
+                ||
+                answer.result.method && answer.result.method == "status" // запрос к терминалу 
+            ){
                 params.title = 'Успешно подключено';
                 params.icon = 'success';
             }else{

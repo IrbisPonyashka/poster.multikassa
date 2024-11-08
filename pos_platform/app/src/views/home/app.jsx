@@ -47,7 +47,6 @@ const Home = (props) => {
     
     useEffect( () => {  
 
-        console.log("cashbox_type Home useEffect", cashbox_type);
         if(cashbox_type != "none")
         {
             collectingDataFromKKM();
@@ -88,15 +87,13 @@ const Home = (props) => {
     }, [cashbox_type]);
 
 
-    Poster.on('beforeOrderClose', async (data, next) => {
-        console.log("beforeOrderClose", data);
-        next();
-    });
+    // Poster.on('beforeOrderClose', async (data, next) => {
+    //     next();
+    // });
 
-    // Закрытие просто чека, также не смысла 
-    Poster.on('afterOrderClose', (order) => {
-        console.log("afterOrderClose", order);
-    });
+    // // Закрытие просто чека, также не смысла 
+    // Poster.on('afterOrderClose', (order) => {
+    // });
     
     // При добавлении/изменении товара в заказе
     Poster.on('orderProductChange', async (order) => {
@@ -146,17 +143,26 @@ const Home = (props) => {
                 
                 var fiscalOperationResult = await onAfterOrderClose(info.order);
                 console.log("fiscalOperationResult", fiscalOperationResult);
-                if(fiscalOperationResult.result.status == "success" || fiscalOperationResult.result.success){
+                if(fiscalOperationResult?.result.status == "success" || fiscalOperationResult?.result.success){
                     next({
                         errorCode: 0,
                         success: true,
                         successText: "Операция прошла успешно"
                     });
                 }else{
+                    let textError = "";
+                    console.log("fiscalOperationResult.error", fiscalOperationResult.error);
+                    if(fiscalOperationResult.error && typeof fiscalOperationResult.error == "string"){
+                        textError = fiscalOperationResult.error;
+                    }else if(fiscalOperationResult.error){
+                        textError = JSON.parse(fiscalOperationResult.error).error;
+                    }else{
+                        textError = fiscalOperationResult.result?.data.error.message ?? fiscalOperationResult.data.error.message
+                    }
                     next({
                         errorCode: 6,
                         success: false,
-                        errorText: JSON.parse(fiscalOperationResult.error).error ?? fiscalOperationResult.result.data.error.message
+                        errorText: textError
                     });
                 }
                 
@@ -164,16 +170,24 @@ const Home = (props) => {
                 
                 var fiscalOperationResult = await onAfterOrderReturn(info.order);
                 console.log("fiscalOperationResult", fiscalOperationResult);
-                if(fiscalOperationResult.success){
+                if(fiscalOperationResult.result.success){
                     next({
                         errorCode: 0,
                         success: true
                     });
                 }else{
+                    let textError = "";
+                    if(fiscalOperationResult.error && typeof fiscalOperationResult.error == "string"){
+                        textError = fiscalOperationResult.error;
+                    }else if(fiscalOperationResult.error){
+                        textError = JSON.parse(fiscalOperationResult.error).error;
+                    }else{
+                        textError = fiscalOperationResult.result?.data.error.message ?? fiscalOperationResult.data.error.message
+                    }
                     next({
                         errorCode: 6,
                         success: false,
-                        errorText: fiscalOperationResult?.data?.error.message ?? JSON.parse(fiscalOperationResult.error).error
+                        errorText: textError
                     });
                 }
             }
@@ -189,16 +203,17 @@ const Home = (props) => {
                 if(shiftXReportRequest.success && shiftXReportRequest.data)
                 {
 
-                    setPopupType("receiptsArchive");
-                    setReceipt(shiftXReportRequest.data);
+                    // setPopupType("receiptsArchive");
+                    // setReceipt(shiftXReportRequest.data);
     
-                    width = window.outerWidth - (window.outerWidth * 0.5);
-                    height = window.outerHeight - (window.outerHeight * 0.26);
+                    // width = window.outerWidth - (window.outerWidth * 0.5);
+                    // height = window.outerHeight - (window.outerHeight * 0.26);
 
-                    Poster.interface.popup({ width: width, height: height, title: "Multikassa"});
+                    // Poster.interface.popup({ width: width, height: height, title: "Multikassa"});
     
                     next({
-                        success: true
+                        success: true,
+                        successText: "X-отчет сформирован"
                     });
                 }else{
                     next({
@@ -260,13 +275,16 @@ const Home = (props) => {
         let payedCard = order.payedCash === 0 ? order.payedCash : order.payedCash * 100;
         let payedCash = order.payedCard === 0 ? order.payedCard : order.payedCard * 100;
 
-        let cashier = "Batirov Murat";
+        let cashier = "";
+        /* Так как Толкин ничего правильно не понял, приходится делать так */
         if(cashbox && cashbox.current_cashier){
-            cashier = `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+            cashier = typeof cashbox.current_cashier === "object" ?
+                `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+                : cashbox.current_cashier;
         }
 
         let sale_fields_obj = {
-            "module_operation_type": 3,
+            "module_operation_type": "3",
             "force_to_print": true,
             "receipt_sum": order.total === 0 ? order.total : order.total * 100 ,
             "receipt_cashier_name": cashier,
@@ -278,7 +296,7 @@ const Home = (props) => {
                 "latitude": 41.29671408606234,
                 "longitude": 69.21787478269367
             }
-        }; 
+        };
 
         sale_fields_obj.receipt_gnk_receivedcard > 0 ? sale_fields_obj.pay_from_card = true : null;
         
@@ -287,12 +305,37 @@ const Home = (props) => {
         if(sale_fields_obj.items)
         {
             console.log("sale_fields_obj", sale_fields_obj);
-            let saleOperationResponse = await cashboxOperationRequest( sale_fields_obj);
+            
+            // Если оплата картой через терминал 
+            if(
+                sale_fields_obj.receipt_gnk_receivedcard > 0 &&
+                Poster.settings.extras &&
+                Poster.settings.extras.cashboxType &&
+                Poster.settings.extras.cashboxType == "vm" &&
+                Poster.settings.extras.terminalDeviceIpAdres &&
+                Poster.settings.extras.terminalDevicePort
+            ){
+                let sendPayRequest = await terminalOperationPay(order, sale_fields_obj.receipt_gnk_receivedcard);
+                if(!sendPayRequest){
+                    return {
+                        "result": {
+                            "data": {
+                                "error":{
+                                    "message": "Транзакция отменена"
+                                }
+                            },
+                            "success": false
+                        }
+                    }
+                }
+            }
+
+            let saleOperationResponse = await cashboxOperationRequest( sale_fields_obj );
             console.log("saleOperationResponse", saleOperationResponse);
 
             if(saleOperationResponse.result.success){
                 // если всё ок, то нужно записать id чека в заказ poster'а
-                let saveReceiptIdOnOrderRes = await saveReceiptIdOnOrder(order, saleOperationResponse);
+                let saveReceiptIdOnOrderRes = await saveReceiptIdOnOrder(order, saleOperationResponse.result);
                 
                 console.log("saveReceiptIdOnOrderRes",saveReceiptIdOnOrderRes);
                 
@@ -337,12 +380,12 @@ const Home = (props) => {
         }
 
         var refundReceiptObj = {
-            "module_operation_type": 4,
+            "module_operation_type": "4",
             "receipt_cashier_name": receipt.receipt_cashier_name,
             "receipt_gnk_time": new Date(order.dateClose ?? order.dateStart).toLocaleString().replace(",",""),
             "receipt_sum": receipt.receipt_sum,
             "receipt_gnk_receivedcash": receipt.receipt_gnk_receivedcash,
-            "receipt_gnk_receivedcard": 0,
+            "receipt_gnk_receivedcard": receipt.receipt_gnk_receivedcard,
             "RefundInfo":{
                 "TerminalID": receipt.receipt_gnk_terminalid,
                 "ReceiptSeq": receipt.receipt_gnk_receiptseq, 
@@ -356,8 +399,34 @@ const Home = (props) => {
         };
         
         refundReceiptObj.items = await prepareProductItems(order.products, order.extras ?? false);
+        console.log("refundReceiptObj", refundReceiptObj);
 
         if(refundReceiptObj.items){
+            
+            // Если оплата картой через терминал 
+            if(
+                refundReceiptObj.receipt_gnk_receivedcard > 0 &&
+                Poster.settings.extras &&
+                Poster.settings.extras.cashboxType &&
+                Poster.settings.extras.cashboxType == "vm" &&
+                Poster.settings.extras.terminalDeviceIpAdres &&
+                Poster.settings.extras.terminalDevicePort
+            ){
+                let sendPayRequest = await terminalOperationReturn(order);
+                if(!sendPayRequest){
+                    return {
+                        "result": {
+                            "data": {
+                                "error":{
+                                    "message": "Транзакция отменена"
+                                }
+                            },
+                            "success": false
+                        }
+                    }
+                }
+            }
+
             let saleOperationResponse = await cashboxOperationRequest( refundReceiptObj);
 
             console.log("saleOperationResponse", saleOperationResponse);
@@ -370,6 +439,50 @@ const Home = (props) => {
         }
     }; 
     
+    const terminalOperationPay = async (order, amount) => {
+        return new Promise((resolve, reject) => {
+            console.log(`http://${Poster.settings.extras.terminalDeviceIpAdres}:${Poster.settings.extras.terminalDevicePort}/pay?amount=${amount}&orderId=${order.id}`);
+            Poster.makeRequest(`http://${Poster.settings.extras.terminalDeviceIpAdres}:${Poster.settings.extras.terminalDevicePort}/pay?amount=${amount}&orderId=${order.id}`, {
+                method: 'post',
+                localRequest: true
+            }, (answer) => {
+                console.log("Результат оплаты картой => ", answer);
+                if(
+                    answer.result &&
+                    answer.result.param &&
+                    answer.result.param.status &&
+                    answer.result.param.status == "success"
+                ){
+                    resolve(true)
+                }else{
+                    resolve(false)
+                }
+            });
+        })
+    }
+
+    const terminalOperationReturn = async (order) => {
+        return new Promise((resolve, reject) => {
+            console.log(`http://${Poster.settings.extras.terminalDeviceIpAdres}:${Poster.settings.extras.terminalDevicePort}/cancel_transaction?orderId=${order.id}`);
+            Poster.makeRequest(`http://${Poster.settings.extras.terminalDeviceIpAdres}:${Poster.settings.extras.terminalDevicePort}/cancel_transaction?orderId=${order.id}`, {
+                method: 'post',
+                localRequest: true
+            }, (answer) => {
+                console.log("Результат возврата средств => ", answer);
+                if(
+                    answer.result &&
+                    answer.result.param &&
+                    answer.result.param.status &&
+                    answer.result.param.status == "success"
+                ){
+                    resolve(true)
+                }else{
+                    resolve(false)
+                }
+            });
+        })
+    }
+
     const cashboxOperationRequest = async (feilds) => {
         return new Promise((resolve, reject) => {
 
@@ -417,15 +530,18 @@ const Home = (props) => {
 
                 let price = item.promotionPrice ?? item.price;
                 let item_price = item.taxValue === 0 ? price : price + (price * Number(`0.${item.taxValue}`)) ;
+                let item_promotion_price = item.taxValue === 0 ? item.promotionPrice : item.promotionPrice + (item.promotionPrice * Number(`0.${item.taxValue}`)) ;
+                // let item_promotion_price = item.promotionPrice ;
                 
                 // если в extras'е имеется продукт с подходящим айди
-                if(order_extras && order_extras.productsLabels && JSON.parse(order_extras.productsLabels)[product.id] ){
-                    var productsLabels = JSON.parse(order_extras.productsLabels)[product.id];
+                if(order_extras && order_extras.productsLabels && JSON.parse(order_extras.productsLabels)[item.id] ){
+                    console.log("LABELS", JSON.parse(order_extras?.productsLabels),item.id);
+                    var productsLabels = JSON.parse(order_extras.productsLabels)[item.id];
                     productsLabels.forEach((product_label) => {
-                        preparedItemsArr.push(getProductObjectFields(product, item, item_price, product_label));
+                        preparedItemsArr.push(getProductObjectFields(product, item, item_price, item_promotion_price, product_label));
                     });
                 }else{
-                    preparedItemsArr.push(getProductObjectFields(product, item, item_price));
+                    preparedItemsArr.push(getProductObjectFields(product, item, item_price, item_promotion_price));
                 }               
             }
         }
@@ -433,7 +549,7 @@ const Home = (props) => {
         return preparedItemsArr;
     }
 
-    const getProductObjectFields = ( product, item, item_price, product_label = "" ) => {
+    const getProductObjectFields = ( product, item, item_price, item_promotion_price, product_label = "" ) => {
         /* preparedItemsArr.push({
             "classifier_class_code": (product.extras && product.extras.classifier_class_code) ? product.extras.classifier_class_code : "01902001009030002",
             "product_package": (product.extras && product.extras.package_code) ? product.extras.package_code : "",
@@ -460,7 +576,7 @@ const Home = (props) => {
             "product_name": product.product_name,
             "product_price": item_price,
             "total_product_price": item_price * item.count,
-            "product_discount": item.nodiscount,
+            "product_discount": 0,
             "count": item.count,
             "product_without_vat": false,
             "product_vat_percent": item.taxValue,
@@ -481,27 +597,27 @@ const Home = (props) => {
     const getZReportInfo = async () => {
         return new Promise((resolve, reject) => {
             let uri_ip = cashbox_type == "vm" ? "localhost:8080" : `${Poster.settings.extras.posDeviceIpAdres}:9090`;
-            
+
             Poster.makeRequest(`http://${uri_ip}/api/v1/zReport`, {
                 method: 'get',
                 localRequest: true
             }, (answer) => {
-                let result = answer.result;
-                if(result.success || result.status == "success")
+                console.log("result.data.result", answer.result);
+                if(answer.result && answer.result.success)
                 {
-                    cashbox_type == "vm" ? setShiftInfo(result.data.result) : setShiftInfo(result.data);
-
+                    let result = answer.result;
+                    setShiftInfo(result.data.result);
                     if( 
-                        (result.data.openTime && result.data.openTime != null)
+                        (result.data.result.openTime && result.data.result.openTime != null)
                         ||
                         (result.data.result.OpenTime && result.data.result.OpenTime != null)
                     ){
                         setIsShiftOpen(true);
-                        resolve(true);
                     }else{
                         setIsShiftOpen(false)
-                        resolve(false);
                     }
+
+                    resolve(result.data.result);
                 }else{
                     reject(false);
                 }
@@ -534,8 +650,14 @@ const Home = (props) => {
                 localRequest: true
             }, (answer) => {
                 console.log("getCahboxInfo => ", answer.result);
-                setCahbox(answer.result);
-                resolve(answer.result);
+                if(answer.result.success){
+                    setCahbox(answer.result.data);
+                    resolve(answer.result.success);
+                }else{
+                    setCahbox([]);
+                    resolve(answer.result);
+                }
+
             });
         })
     }
@@ -548,9 +670,16 @@ const Home = (props) => {
                 method: 'get',
                 localRequest: true
             }, (answer) => {
-                resolve(answer.result);
-                let result = answer.result;
-                setContragent(result.data);
+                // let result = answer.result;
+                // setContragent(result.data);
+                if(answer.result.success){
+                    setContragent(answer.result.data);
+                    resolve(answer.result.data);
+                }else{
+                    setContragent([]);
+                    resolve([]);
+                }
+
             });
         })
     }
@@ -570,8 +699,8 @@ const Home = (props) => {
 
                     console.log("device", device);
 
-                    console.log("setDefault", device.setDefault()),
-                    console.log("setOnline", device.setOnline()),
+                    device.setDefault();
+                    device.setOnline();
 
                     setfiscalDevice(device);
                 }else{
@@ -597,44 +726,57 @@ const Home = (props) => {
         return new Promise((resolve, reject) => {
             let uri_ip = cashbox_type == "vm" ? "localhost:8080" : `${Poster.settings.extras.posDeviceIpAdres}:9090`;
 
-            console.log("uri_ip",`http://${uri_ip}/api/v1/info`);
             Poster.makeRequest(`http://${uri_ip}/api/v1/info`, {
                 method: 'get',
                 localRequest: true
             }, (answer) => {
                 if(answer.result == false && JSON.parse(answer.error).error && JSON.parse(answer.error).error == "Преведущая опреация не завершена. По необходимости перезагрузите терминал"){
                     console.log("getFiscalModuleInfo error",answer);
+                    resolve(answer.result);
                 }else{
                     setFiscalModule(answer.result.data)
                     console.log("getFiscalModuleInfo success",answer);
+                    resolve(answer.result.data);
                     // if(cashbox_type == "vm"){
                     //     setFiscalModule(answer.result.data.result)
                     // }else{
                     // }
                 }
-                resolve(true);
             });
         })
     }
 
     const collectingDataFromKKM = async () => {
-        
-        if(await getFiscalModuleInfo()){
-            console.log("getFiscalModuleInfo ВЫПОЛНЕН", fiscal_module);
-            
-            if(await getZReportInfo()){
-                console.log("getZReportInfo ВЫПОЛНЕН", shiftInfo);
-                
-                if(await getContragentInfo()){
-                    console.log("getContragentInfo ВЫПОЛНЕН", contragent);
+        console.group();
+        let fiscalModule = await getFiscalModuleInfo();
+        if(fiscalModule){
+            console.log("fiscalModule",fiscal_module)
+
+            let zreportInfo = await getZReportInfo();
+            if(zreportInfo){
+                console.log("zreportInfo",shiftInfo, isShiftOpen)
+
+                let contragentInfo = await getContragentInfo();
+                if(contragentInfo){
+                    console.log("contragentInfo",contragent)
                     
-                    if(await getCahboxInfo()){
-                        console.log("getCahboxInfo ВЫПОЛНЕН");   
+                    if(cashbox_type == "kkm" && contragentInfo.cashier){
+                        let cashboxInfo = {
+                            "current_cashier": contragentInfo.cashier
+                        };
+                        
+                        setCahbox(cashboxInfo);
+                        console.log("cashboxInfo",cashbox);
+                        
+                    }else if(cashbox_type == "vm"){
+                        let cashboxInfo = await getCahboxInfo();
+                        console.log("cashboxInfo",cashboxInfo);
                     }
                 }
                 
             }
         }
+        console.groupEnd();
     }
     
     /**
@@ -649,9 +791,12 @@ const Home = (props) => {
             const myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
 
-            let cashier = "Batirov Murat";
+            let cashier = "";
+            /* Так как Толкин ничего правильно не понял, приходится делать так */
             if(cashbox && cashbox.current_cashier){
-                cashier = `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+                cashier = typeof cashbox.current_cashier === "object" ?
+                    `${cashbox.current_cashier.user_last_name} ${cashbox.current_cashier.user_first_name} ${cashbox.current_cashier.user_middle_name}`
+                    : cashbox.current_cashier;
             }
 
             const raw = {
@@ -670,20 +815,6 @@ const Home = (props) => {
             }, (answer) => {
                 resolve(answer.result)
             });
-
-            // const requestOptions = {
-            //     method: "POST",
-            //     headers: myHeaders,
-            //     body: raw,
-            //     redirect: "follow"
-            // };
-            // fetch(`http://${uri_ip}:8080/api/v1/operations`, requestOptions)
-            //     .then((response) => response.text())
-            //     .then((result) => {
-            //         result = JSON.parse(result);
-            //         resolve(result)
-            //     })
-            //     .catch((error) => reject(error));
         })
     };
 
@@ -801,7 +932,7 @@ const Home = (props) => {
                 returnMainApp()
             )
         // Выводим компонент скана, только если заданы все настройки
-        }else if(cashbox_type != "none" && cashbox_type != "" && fiscal_module && fiscal_module.data && popup_type == "onScanProducts"){
+        }else if(cashbox_type != "none" && cashbox_type != "" && fiscal_module && fiscal_module.result && popup_type == "onScanProducts"){
             return (
                 returnScanComponent()
             ) 

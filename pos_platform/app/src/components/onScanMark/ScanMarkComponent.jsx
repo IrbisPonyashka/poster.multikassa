@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 
 import { Input, Button, Typography, Spin } from 'antd';
 
-import PosterUiKit from 'poster-ui-kit';
-
 const { Text } = Typography;
 
 export default function ScanMarkComponent(props) {
@@ -25,11 +23,6 @@ export default function ScanMarkComponent(props) {
             })
         }
         
-        // Poster.interface.scanBarcode()
-        //     .then(function (barcode) {
-        //         console.log('barcode', barcode);
-        //     })
-
     }, [props.orderData]);
 
     const handleScanInput = (e) => {
